@@ -4,6 +4,7 @@ import path from "path";
 const marked = require("marked")
 import slugify from  "slugify"
 import fileUpload from "../utilities/fileUpload";
+import {MDDirpath, MDFilepath} from "../utilities/MDPath";
 const shortid = require("shortid")
 const low = require('lowdb')
 const FileSync = require('lowdb/adapters/FileSync')
@@ -45,7 +46,10 @@ export const getPosts = (req, res, next) =>{
     }
   })
 
+  setTimeout(()=>{
   response(res, 200, {posts: posts_with_user})
+  
+  }, 1000)
 }
 
 export const getPost = (req, res, next) =>{
@@ -69,17 +73,21 @@ export const getPost = (req, res, next) =>{
 
 export const addPost = async (req, res, next) =>{
   let user_id = req.user_id
-  if(!user_id) return response(res, 409, "Unauthorized")
 
-  fileUpload(req, "markdown/cover", "upload-cover", async (err, obj)=>{
-    if(err){}
+  fileUpload(req, "src/markdown/cover", "upload-cover", async (err, obj)=>{
+    if(err){
+      console.log(err)
+    }
     const { fields, files } = obj
     let { title, cover, author_id, mdContent, tags } = fields
 
     if(files && files['upload-cover'] && files["upload-cover"][0].path){
       cover = files["upload-cover"][0].path
+      if(cover.startsWith("src/")){
+        cover = cover.replace("src/", "").trim()
+      }
     }
-
+  
     let id = shortid.generate();
     let slug = slugify(title, {
       replacement: "-",
@@ -90,7 +98,7 @@ export const addPost = async (req, res, next) =>{
 
     if(mdContent){
       try {
-        let r = await writeFile(path.resolve(`markdown/${slug}.md`), mdContent)
+        let r = await writeFile(path.resolve(`src/markdown/${slug}.md`), mdContent)
         console.log("markdown file created...", `markdown/${slug}.md`)
       } catch (ex){
         console.log("markdown file created fail...")
@@ -143,12 +151,14 @@ export const addPost = async (req, res, next) =>{
 }
 
 export const updatePost = async (req, res, next) =>{
-
+  
   let user_id = req.user_id 
   if(!user_id){
     return response(res, 409, "Unauthorized")
   }
-
+  
+ 
+  
   let { id, title, cover, mdContent, tags } = req.body
 
   let fPost = db.get("posts").find({id: id}).value()
@@ -168,7 +178,7 @@ export const updatePost = async (req, res, next) =>{
     
     if(mdContent){
       try {
-        let r = await writeFile(path.resolve(`${fPost.path}`), mdContent)
+        let r = await writeFile(MDFilepath(fPost.path), mdContent)
       } catch (ex){
 
       }
@@ -190,8 +200,10 @@ export const getPostContent = async (req, res, next) =>{
  
   let fPost = db.get("posts").find({id: post_id}).value()
   try {
-    let content = await readFile(path.resolve(fPost.path), "utf-8")
-
+    let p = MDFilepath(fPost.path)
+  
+    let content = await readFile(p, "utf-8")
+    
     if (content) {
       let h = marked.parse(content)
       response(res, 200, {mdContent: h})
@@ -199,6 +211,7 @@ export const getPostContent = async (req, res, next) =>{
       response(res, 200, {mdContent: ""})
     }
   } catch (ex){
+    console.log(ex)
     response(res, 200, {mdContent: ""})
   }
 }
@@ -210,7 +223,7 @@ export const getRawMarkdownContent = async (req, res, next) =>{
   let fPost = db.get("posts").find({id: post_id}).value()
   try {
 
-    let content = await readFile(path.resolve(fPost.path), "utf-8")
+    let content = await readFile(MDFilepath(fPost.path), "utf-8")
 
     if (content) {
       response(res, 200, {mdContent: content})
@@ -232,7 +245,7 @@ export const getDeletePost = async (req, res, next) =>{
   if(deletedPost){
     if(fPost) {
       try {
-        let deleted = await rm(fPost.path, {force: true})
+        let deleted = await rm(MDFilepath(fPost.path), {force: true})
         console.log("markdown file deleted")
       } catch (ex) {
         console.log("markdown file not found")

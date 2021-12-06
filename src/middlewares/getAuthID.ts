@@ -4,8 +4,8 @@ import { parseToken} from "../jwt/index";
   let token = req.headers["token"]
   
   if(!token){
-    req.user_id = null
-    return next()
+    res.status(409).json({message: "You are unauthorized"})
+    return
   }
   
   parseToken(token).then(u=>{
@@ -13,8 +13,9 @@ import { parseToken} from "../jwt/index";
     req.user_email = u.email
     next()
   }).catch(err=>{
-    req.user_id = null
-    next()
+    console.log(err.message)
+    res.status(409).json({message: "You are unauthorized"})
+    return
   })
 }
 

@@ -28,38 +28,6 @@
   ],
   "posts": [
     {
-      "id": "2",
-      "slug": "how-to-deal-with-recursive-function-in-javascript",
-      "title": "How to deal with recursive function in javascript",
-      "path": "markdown/working_with_recursive_function.md",
-      "created_at": "2021-11-10T07:52:35.946Z",
-      "author_id": "X71lHJqu_",
-      "tags": [
-        "react",
-        "recursive",
-        "loop",
-        "nested",
-        "react",
-        "function"
-      ],
-      "cover": "markdown/cover/react-usememo-reactmemo.png"
-    },
-    {
-      "id": "3",
-      "slug": "react-prevent-re-rendering-using-React-useMemo",
-      "title": "React prevent re-rendering using React useMemo",
-      "path": "markdown/react_use_memo.md",
-      "created_at": "2021-11-10T07:53:03.671Z",
-      "author_id": "X71lHJqu_",
-      "tags": [
-        "react",
-        "effect",
-        "useMemo",
-        "memo"
-      ],
-      "cover": "markdown/cover/react-usememo-reactmemo.png"
-    },
-    {
       "id": "4",
       "cover": "markdown/cover/react-usememo-reactmemo.png",
       "slug": "React_memo_vs_useMemo_Major_differences_and_use_cases",

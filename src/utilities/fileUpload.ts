@@ -9,12 +9,13 @@ function fileUpload(req: Request, filePath: string, fieldName: string, callback:
   
   fs.stat(uploadDir, (err)=>{
     if(err){
+
         mkdir(uploadDir).then(()=>{
           // continue
           fileUploadHandler(req, uploadDir, fieldName, callback)
         })
     } else {
-          // continue
+            // continue
         fileUploadHandler(req, uploadDir, fieldName, callback)
       }
     })
@@ -30,7 +31,7 @@ function fileUploadHandler(req: Request, uploadDir: string, fieldName: string, c
   
     const form = formidable({multiples: true})
     form.parse(req, async (err, fields, files)=>{
-
+      
       if(err){
         callback(err, {})
         return 
@@ -48,16 +49,20 @@ function fileUploadHandler(req: Request, uploadDir: string, fieldName: string, c
           files[fieldName].map(async (file, i)=>{  
             // item = (i + 1)
             let newPath = uploadDir+"/"+file.name
-            await copyFile(file.path, newPath)
-            newFiles.push({
-              name: file.name,
-              path: newPath
-            })
-            if(newFiles.length >= 2){
-              callback(false, {fields, files: { [fieldName]: newFiles} })            
-            }  
-            fs.rm(file.path, (err)=>{})
-            
+            try {
+              await copyFile(file.path, newPath)
+              newFiles.push({
+                name: file.name,
+                path: newPath
+              })
+              if (newFiles.length >= 2) {
+                callback(false, {fields, files: {[fieldName]: newFiles}})
+              }
+              fs.rm(file.path, (err) => {
+              })
+            } catch (ex){
+              console.log(ex.message)
+            }
           })
         }
         else{
