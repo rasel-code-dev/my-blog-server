@@ -34,9 +34,9 @@ const app = express()
 
 app.use(cors())
 app.use(express.json())
-app.use("/markdown/cover/", express.static("markdown/cover/"))
-app.use("/markdown/images/", express.static("markdown/images/"))
-app.use("/static/", express.static("static/"))
+app.use("/markdown/cover/", express.static("src/markdown/cover/"))
+app.use("/markdown/images/", express.static("src/markdown/images/"))
+app.use("/static/", express.static("src/static/"))
 
 routes(app)
 

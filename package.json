@@ -5,11 +5,14 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc",
+    "clean": "rm -rf ./dist",
     "start": "node ./dist/src/server.js",
     "deploy": "git add . && git commit -m Heroku && git push heroku master",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts"
   },
-  "engines": { "node": "16.13.0" },
+  "engines": {
+    "node": "16.13.0"
+  },
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
@@ -28,6 +31,7 @@
   },
   "devDependencies": {
     "@types/node": "^16.11.7",
+    "copyfiles": "^2.4.1",
     "ts-node-dev": "^1.1.8"
   }
 }
