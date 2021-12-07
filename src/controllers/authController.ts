@@ -15,7 +15,7 @@ export const createNewUser = async (req, res, next)=>{
     let date = new Date()
     let {first_name, last_name, email, password } = req.body
     let user = db.get('users').find({ email: email }).value()
-    if(user) return res.send("user already registered")
+    if(user) return res.status(409).json({message: "User already registered"})
     
     let salt = await bcryptjs.genSalt(10);
     let hashedPass = await bcryptjs.hash(password, salt)
@@ -38,17 +38,10 @@ export const createNewUser = async (req, res, next)=>{
       token: token,
       ...newUser
     })
-
     
   } catch (ex){
     errorConsole(ex)
-    if(ex.type === "VALIDATION_ERROR"){
-      response(res, 422, ex.errors)
-    } else if(ex.type === "ER_DUP_ENTRY"){
-      response(res, 409, "user already exists")
-    } else {
-      next(ex)
-    }
+    res.status(500).json({message: "Internal server error"})
   }
 }
 
@@ -56,14 +49,16 @@ export const loginUser = async (req, res)=>{
   try {
     const { email, password } = req.body
     let user = db.get('users').find({ email: email }).value()
-    console.log(user)
+   
     if(user){
       let match = await bcryptjs.compare(password, user.password)
-      if(!match)  return res.json({message: "Password not match"})
+      if(!match)  return  res.status(404).json({message: "Password not match"})
       
       let token = await createToken(user.id, user.email)
       let {password : s, ...other} = user
       res.json({token: token, ...other})
+    } else{
+      res.status(404).json({message: "This email not yet register."})
     }
     
   } catch (ex){
