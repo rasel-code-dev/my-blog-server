@@ -31,8 +31,6 @@ require("dotenv").config()
 
 import routes  from "./routers/index"
 import * as fs from "fs";
-import * as http from "http";
-import * as stream from "stream";
 import getAuthID from "./middlewares/getAuthID";
 
 const app = express()

@@ -211,7 +211,6 @@ export const getPostContent = async (req, res, next) =>{
     
     let o = req.host === "localhost" ? 'http://'+ req.rawHeaders[1] : "https://" + req.rawHeaders[1]
     
-
     let content = await readFile(p, "utf-8")
     
     if (content) {
