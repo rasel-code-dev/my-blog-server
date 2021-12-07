@@ -3,6 +3,8 @@ import cors from "cors";
 import path from "path"
 
 
+let isDev = process.env.NodeENV === "development"
+
 let c = ['debug', 'log', 'warn', 'error']
 c.forEach((methodName) => {
     const originalLoggingMethod = console[methodName];
@@ -33,8 +35,9 @@ import routes  from "./routers/index"
 const app = express()
 
 
+
 // app.use(cors())
-app.use(cors({ credentials: true, origin: "http://localhost:5500" }))
+app.use(cors({ credentials: true, origin: isDev ? "http://localhost:5500": "https://rasel-code-dev.github.io" }))
 
 // app.use(function(req, res, next) {
 //     res.header('Access-Control-Allow-Origin', "http://localhost:5500");
