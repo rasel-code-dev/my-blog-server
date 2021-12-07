@@ -32,7 +32,17 @@ import routes  from "./routers/index"
 
 const app = express()
 
-app.use(cors())
+
+// app.use(cors())
+app.use(cors({ credentials: true, origin: "http://localhost:5500" }))
+
+// app.use(function(req, res, next) {
+//     res.header('Access-Control-Allow-Origin', "http://localhost:5500");
+//     res.header('Access-Control-Allow-Credentials', true);
+//     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+//     next();
+// });
+
 app.use(express.json())
 app.use("/markdown/cover/", express.static("src/markdown/cover/"))
 app.use("/markdown/images/", express.static("src/markdown/images/"))

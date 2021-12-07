@@ -7,6 +7,8 @@ const FileSync = require('lowdb/adapters/FileSync')
 const db = low(new FileSync('./src/database/db.json'))
 const bcryptjs  = require("bcryptjs")
 import express, { Request, Response } from 'express';
+import visitorDB from "../database/visitorDB";
+import getAppCookies from "../utilities/getAppCookies";
 
 export const createNewUser = async (req, res, next)=>{
   try {
@@ -91,4 +93,51 @@ export const getUser = (req: Request, res: Response)=>{
   let user = db.get('users').find({ username: username }).value()
   let {password, role, ...o} = user
   response(res, 200, {user: o})
+ }
+
+
+ export const cookieAdd = (req: Request, res: Response)=> {
+  
+   let randomID = Math.ceil(Date.now() / 1000)
+   let total_visitor = visitorDB.get("app_visitor").find({ total_visitor: ''}).value()
+   
+   
+   if(getAppCookies(req).browser_uuid) {
+     // response(res, 200, {message: "cookie already exists"})
+  
+   } else{
+     res.cookie('browser_uuid', randomID, {
+         maxAge: ((1000 * 3600) * 24) * 30, // 30days
+         // You can't access these tokens in the client's javascript
+         httpOnly: true,
+         // Forces to use https in production
+         secure: process.env.NODE_ENV === 'production'
+       });
+     
+     // increase total visitor....
+     
+     if(total_visitor){
+       total_visitor.ids.push(randomID)
+     } else {
+       total_visitor = {total_visitor: "", ids : [randomID]}
+     }
+     visitorDB.get("app_visitor").assign({ total_visitor: total_visitor}).write()
+   }
+   
+   let day_visitor = visitorDB.get("app_visitor").find({ day_visitor: ''}).value()
+   if(day_visitor){
+     day_visitor.ids.push(randomID)
+   } else {
+     day_visitor = {day_visitor: "", ids: [randomID]}
+   }
+   
+   visitorDB.get("app_visitor").assign({ day_visitor: day_visitor}).write()
+   
+  
+   response(res, 201, {
+     message: "cookie send",
+     day_visitor: day_visitor,
+     total_visitor: total_visitor,
+   })
+   
  }

@@ -8,4 +8,6 @@ export default (app)=>{
   app.get("/api/auth/current-auth", controllers.authController.loginViaToken)
   app.post("/api/auth/users", controllers.authController.createNewUser)
   
+  app.post("/api/add-cookie", controllers.authController.cookieAdd)
+  
 }

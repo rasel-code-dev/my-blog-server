@@ -14,5 +14,7 @@ export default (app)=>{
   app.get("/api/post/:slug", controllers.postController.getPost)
   app.get("/api/post-content/:post_id", controllers.postController.getPostContent)
   app.get("/api/raw-md-content/:post_id", controllers.postController.getRawMarkdownContent)
+  
+  app.post("/api/toggle-like", getAuthID, controllers.postController.handleToggleLike)
 
 }

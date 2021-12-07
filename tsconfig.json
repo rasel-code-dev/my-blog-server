@@ -10,7 +10,8 @@
     "sourceRoot": "./src",
     "inlineSourceMap": true,
     "resolveJsonModule": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    "lib": ["es2021"]
   },
   "include": ["src/"],
   "hooks": [ "copy-files" ], /* <-- NEW OPTION HERE */

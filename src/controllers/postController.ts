@@ -4,10 +4,13 @@ import path from "path";
 const marked = require("marked")
 import slugify from  "slugify"
 import fileUpload from "../utilities/fileUpload";
-import {MDDirpath, MDFilepath} from "../utilities/MDPath";
+import { MDDirpath, MDFilepath } from "../utilities/MDPath";
+import visitorDB from "../database/visitorDB";
+import e from "express";
 const shortid = require("shortid")
 const low = require('lowdb')
 const FileSync = require('lowdb/adapters/FileSync')
+import hljs from 'highlight.js';
 
 
 const db = low(new FileSync("./src/database/db.json"))
@@ -45,26 +48,29 @@ export const getPosts = (req, res, next) =>{
       })
     }
   })
-
-  setTimeout(()=>{
+  
   response(res, 200, {posts: posts_with_user})
   
-  }, 1000)
 }
 
 export const getPost = (req, res, next) =>{
   let { slug, post_id } = req.params
+  let hits = 0
   let fPost;
   if(post_id) {
     fPost = db.get("posts").find({id: post_id}).value()
   } else {
     fPost = db.get("posts").find({slug: slug}).value()
   }
+  
+  let postHit = visitorDB.get("postHits").find({post_id: fPost.id}).value()
+  if(postHit){
+    hits = postHit.hits
+  }
 
   let { password, role, ...other } = db.get("users").find({id: fPost.author_id}).value()
-  
   if (fPost) {
-    response(res, 200, {post: {...fPost, author: other}})
+    response(res, 200, {post: {...fPost, hits, author: other}})
   } else {
     response(res, 404, "post not found")
   }
@@ -195,27 +201,69 @@ export const updatePost = async (req, res, next) =>{
   }
 }
 
+
 export const getPostContent = async (req, res, next) =>{
   let { post_id } = req.params
  
   let fPost = db.get("posts").find({id: post_id}).value()
   try {
     let p = MDFilepath(fPost.path)
-  
+    
+    let o = req.host === "localhost" ? 'http://'+ req.rawHeaders[1] : "https://" + req.rawHeaders[1]
+    
+
     let content = await readFile(p, "utf-8")
     
     if (content) {
-      let h = marked.parse(content)
-      response(res, 200, {mdContent: h})
+    
+      let g = content.replaceAll(`<img src="`, `<img src="${o}`)
+  
+      let post = visitorDB.get("postHits").find({post_id: fPost.id}).value()
+      
+      if(post){
+        if(post.hits){
+          post.hits = Number(post.hits) + 1
+        } else {
+          post.hits = 1
+          // post.hits = [Date.now().toString().slice(3)]
+        }
+        let newVi = visitorDB.get("postHits").assign(post).write()
+        
+      } else {
+        let newVi = visitorDB.get("postHits").push({
+          post_id: fPost.id,
+          hits: 1
+        }).write()
+        
+      }
+      
+  
+      marked.setOptions({
+        highlight: function(code, lang) {
+          const hljs = require('highlight.js');
+          const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+          return hljs.highlight(code, { language }).value;
+        },
+      })
+  
+  
+      marked.parse(g, (err, html) => {
+        
+        if(!err) {
+          response(res, 200, {mdContent: html})
+        } else{
+          response(res, 200, {mdContent: ""})
+        }
+
+      });
     } else {
       response(res, 200, {mdContent: ""})
     }
   } catch (ex){
-    console.log(ex)
+    console.log(ex.message)
     response(res, 200, {mdContent: ""})
   }
 }
-
 
 export const getRawMarkdownContent = async (req, res, next) =>{
   let { post_id } = req.params
@@ -235,7 +283,6 @@ export const getRawMarkdownContent = async (req, res, next) =>{
   }
 }
 
-
 export const getDeletePost = async (req, res, next) =>{
   let { post_id } = req.params
   
@@ -253,4 +300,24 @@ export const getDeletePost = async (req, res, next) =>{
     }
   }
   response(res, 200, { id: post_id })
+}
+
+export const handleToggleLike = async (req, res)=>{
+  const {post_id, user_id} = req.body
+  
+  let post = db.get("posts").find({id: post_id}).value()
+  if(post){
+    if(post.likes) {
+      let idx = post.likes && post.likes.indexOf(user_id)
+      if (idx === -1) {
+        post.likes && post.likes.push(user_id)
+      } else {
+        post.likes && post.likes.splice(idx, 1)
+      }
+    } else {
+      post.likes = [user_id]
+    }
+    let doc = db.get("posts").find({id: post_id}).assign({...post}).write()
+    response(res, 201, {message: "Like Action Success", post: doc})
+  }
 }
