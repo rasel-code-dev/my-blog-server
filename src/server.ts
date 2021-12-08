@@ -63,26 +63,6 @@ app.use("/markdown/cover/", express.static("src/markdown/cover/"))
 app.use("/markdown/images/", express.static("src/markdown/images/"))
 app.use("/static/", express.static("src/static/"))
 
-app.get("/api/backup", getAuthID, async (req, res)=>{
-    let backupFiles = ["database", "markdown"]
-    let ii = 0
-    backupFiles.forEach((bkk, i)=>{
-        ii = ii + 1
-        createZip(`./src/${bkk}`, `src/backup/${bkk}.zip`)
-          .then(r=>{
-              if(backupFiles.length === ii) {
-                  createZip(`src/backup`, `src/backup.zip`).then(rr=>{
-                      const stream = fs.createReadStream(__dirname + '/backup.zip')
-                      stream.pipe(res)
-                  })
-              }
-              
-          })
-          
-    })
-    
-})
-
 
 routes(app)
 

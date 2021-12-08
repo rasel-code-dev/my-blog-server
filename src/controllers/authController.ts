@@ -9,6 +9,8 @@ const bcryptjs  = require("bcryptjs")
 import express, { Request, Response } from 'express';
 import visitorDB from "../database/visitorDB";
 import getAppCookies from "../utilities/getAppCookies";
+import createZip from "../utilities/makeZip";
+import fs from "fs";
 
 export const createNewUser = async (req, res, next)=>{
   try {
@@ -135,4 +137,23 @@ export const getUser = (req: Request, res: Response)=>{
      total_visitor: total_visitor,
    })
    
+ }
+ 
+ export const makeDataBackup  = async (req, res)=>{
+   let backupFiles = ["database", "markdown"]
+   let ii = 0
+   backupFiles.forEach((bkk, i)=>{
+     ii = ii + 1
+     createZip(`./src/${bkk}`, `src/backup/${bkk}.zip`)
+       .then(r=>{
+         if(backupFiles.length === ii) {
+           createZip(`src/backup`, `src/backup.zip`).then(rr=>{
+             const stream = fs.createReadStream(__dirname + '/backup.zip')
+             stream.pipe(res)
+           })
+         }
+        
+       })
+    
+   })
  }
