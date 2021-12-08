@@ -97,8 +97,7 @@ export const getUser = (req: Request, res: Response)=>{
   
    let randomID = Math.ceil(Date.now() / 1000)
    let total_visitor = visitorDB.get("app_visitor").find({ total_visitor: ''}).value()
-  
-   console.log(process.env.NODE_ENV !== 'development', "Lets see......")
+   
    
    if(getAppCookies(req).browser_uuid) {
      // response(res, 200, {message: "cookie already exists"})
