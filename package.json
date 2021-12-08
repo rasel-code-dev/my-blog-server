@@ -3,11 +3,12 @@
   "version": "1.0.0",
   "main": "server.ts",
   "license": "MIT",
+  "homepage": "https://github.com/rasel-code-dev/my-blog-server",
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf ./dist",
     "start": "node ./dist/src/server.js",
-    "deploy": "git add . && git commit -m Heroku && git push heroku master",
+    "deploy": "git add . && git commit -m Heroku && git push origin master",
     "dev": "set NodeENV=development&ts-node-dev --respawn --transpile-only src/server.ts"
   },
   "engines": {
