@@ -12,5 +12,4 @@ function createZip(src, destFile) {
 	})
 }
 
-
 export default createZip
