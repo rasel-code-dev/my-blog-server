@@ -25,5 +25,6 @@ export default (app)=>{
   // ?post_id=1&comment_id=1
   app.delete("/api/comment", getAuthID, controllers.commentController.deleteComment)
   
+  app.get("/", getAuthID, controllers.postController.getMarkDownFileList)
 
 }

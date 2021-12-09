@@ -9,6 +9,7 @@ import hljs from 'highlight.js';
 import slugify from "../utilities/slugify";
 import errorConsole from "../logger/errorConsole";
 import db from "../database/db";
+import * as fs from "fs";
 
 const shortid = require("shortid")
 
@@ -340,3 +341,15 @@ export const handleToggleLike = async (req, res)=>{
     response(res, 201, {message: "Like Action Success", post: doc})
   }
 }
+
+export const getMarkDownFileList = async (req, res)=>{
+  fs.readdir(MDDirpath(), (err, doc)=>{
+    if(err){
+      res.send(err)
+    } else {
+      res.send(doc)
+    }
+  })
+  
+}
+
