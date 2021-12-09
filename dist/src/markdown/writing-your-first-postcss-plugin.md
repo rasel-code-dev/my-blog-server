@@ -81,11 +81,11 @@ Once you’ve finished this setup, you’ll have a boilerplate directory: the wi
 $ cd postcss-test-plugin
 ```
 
-In it, you’ll find some familiar components of a node-based project: `index.js`, `package.json`, a `node_modules` directory. You’ll put your logic in `index.js`: the functions that manipulate the CSS. If you have any other node module dependencies for your plugin, `package.json` will manage them and install them in `node_modules`.
+In it, you’ll find some familiar components of a node-based project: `index.ts`, `package.json`, a `node_modules` directory. You’ll put your logic in `index.ts`: the functions that manipulate the CSS. If you have any other node module dependencies for your plugin, `package.json` will manage them and install them in `node_modules`.
 
-### The Boilerplate Code in `index.js`
+### The Boilerplate Code in `index.ts`
 
-Let’s start by looking at the boilerplate code provided in `index.js`:
+Let’s start by looking at the boilerplate code provided in `index.ts`:
 
 ```js
 var postcss = require('postcss');
@@ -210,69 +210,3 @@ Of course, there are more complications that we’d consider for production purp
 - We need to work on `index.test.js` so we can ensure this keeps working through any code updates.
 
 But, all things considered, we did put together a working plugin  pretty quickly. Hopefully, you’re able to take this walk-through and put together your own PostCSS plugins in the future!
-
-
-
-##         Subscribe to our newsletter for the latest digital product development trends      
-
-​                  Email                      
-
-Take your product to the next level
-
-Let’s build together.
-
-[Connect with us](https://dockyard.com/contact)
-
-###         [Services](https://dockyard.com/services)      
-
-- ​          [Product Strategy](https://dockyard.com/services/digital-product-strategy)        
-- ​          [Product Design](https://dockyard.com/services/design)        
-- ​          [Engineering](https://dockyard.com/services/engineering)        
-- ​          [Testing and QA](https://dockyard.com/services/testing-and-quality-assurance)        
-- ​          [Project Management](https://dockyard.com/services/project-management)        
-- ​          [Training and Support](https://dockyard.com/services/training-and-support)        
-- ​          [Staff Augmentation](https://dockyard.com/services/staff-augmentation)        
-
-###         Capabilities      
-
-- ​          [Progressive Web Apps](https://dockyard.com/capabilities/progressive-web-application-consulting)        
-- ​          [Ember](https://dockyard.com/capabilities/ember-consulting)        
-- ​          [Elixir / Phoenix](https://dockyard.com/capabilities/elixir-consulting)        
-
-###         Company      
-
-- ​          [Why DockYard](https://dockyard.com/why-dockyard)        
-- ​          [Work](https://dockyard.com/work)        
-- ​          [Press Releases](https://dockyard.com/press/releases)        
-- ​          [Blog](https://dockyard.com/blog)        
-- ​          [Team](https://dockyard.com/team)        
-- ​          [Culture](https://dockyard.com/culture)        
-- ​          [Careers](https://dockyard.com/careers)        
-
-###         Connect      
-
-- ​          [Contact](https://dockyard.com/contact)        
-- ​          [Newsletter](https://dockyard.com/newsletter)        
-- ​          [Twitter](https://twitter.com/dockyard)        
-- ​          [LinkedIn](https://www.linkedin.com/company/dockyard)        
-- ​          [Dribbble](https://dribbble.com/dockyard)        
-- ​          [Github](https://github.com/dockyard)        
-
-- ​      [         ](https://twitter.com/dockyard)
-
-[           DockYard on Twitter                ](https://twitter.com/dockyard)    
-
-​      [         ](https://www.linkedin.com/company/dockyard)
-
-[           DockYard on LinkedIn                ](https://www.linkedin.com/company/dockyard)    
-
-​      [         ](https://dribbble.com/dockyard)
-
-[           DockYard on Dribbble                ](https://dribbble.com/dockyard)    
-
-​      [         ](https://github.com/dockyard)
-
-- [           DockYard on GitHub                ](https://github.com/dockyard)    
-
-​      Copyright © 2017 DockYard, Inc. All rights reserved.
-​      [Terms of Service and Privacy Policy](https://dockyard.com/terms-of-service-and-privacy-policy).    

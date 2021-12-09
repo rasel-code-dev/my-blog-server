@@ -2,18 +2,16 @@ import response from "../response";
 import {writeFile, readFile, rm } from "fs/promises";
 import path from "path";
 const marked = require("marked")
-import slugify from  "slugify"
 import fileUpload from "../utilities/fileUpload";
 import { MDDirpath, MDFilepath } from "../utilities/MDPath";
 import visitorDB from "../database/visitorDB";
-import e from "express";
-const shortid = require("shortid")
-const low = require('lowdb')
-const FileSync = require('lowdb/adapters/FileSync')
 import hljs from 'highlight.js';
+import slugify from "../utilities/slugify";
+import errorConsole from "../logger/errorConsole";
+import db from "../database/db";
 
+const shortid = require("shortid")
 
-const db = low(new FileSync("./src/database/db.json"))
 
 
 export const getPosts = (req, res, next) =>{
@@ -48,8 +46,10 @@ export const getPosts = (req, res, next) =>{
       })
     }
   })
+  // setTimeout(()=>{
   
   response(res, 200, {posts: posts_with_user})
+  // }, 4000)
   
 }
 
@@ -67,14 +67,26 @@ export const getPost = (req, res, next) =>{
   if(postHit){
     hits = postHit.hits
   }
-
+  
+  let comments = db.get("comments").filter({post_id: fPost.id}).value()
+  
   let { password, role, ...other } = db.get("users").find({id: fPost.author_id}).value()
   if (fPost) {
-    response(res, 200, {post: {...fPost, hits, author: other}})
+    
+      response(res, 200, {
+        post: {
+          ...fPost,
+          hits,
+          author: other,
+          comments: comments
+        }
+      })
+ 
   } else {
     response(res, 404, "post not found")
   }
 }
+
 
 
 export const addPost = async (req, res, next) =>{
@@ -87,6 +99,10 @@ export const addPost = async (req, res, next) =>{
     const { fields, files } = obj
     let { title, cover, author_id, mdContent, tags } = fields
 
+    if(user_id !== author_id){
+      return response(res, 500, {message: "you are unauthorized" })
+    }
+    
     if(files && files['upload-cover'] && files["upload-cover"][0].path){
       cover = files["upload-cover"][0].path
       if(cover.startsWith("src/")){
@@ -95,34 +111,45 @@ export const addPost = async (req, res, next) =>{
     }
   
     let id = shortid.generate();
-    let slug = slugify(title, {
-      replacement: "-",
-      strict: true,
-      lower: true,
-      trim: true
-    })
+    
+    // let slug = slugify(title, {
+    //   replacement: "-",
+    //   strict: true,
+    //   lower: true,
+    //   trim: true
+    // })
+    
+    let slug = slugify(title)
+    
+    if(!slug){
+      // slug = make_slug(title)
+      return response(res, 400, {message: "post title invalid" })
+    }
 
     if(mdContent){
       try {
         let r = await writeFile(path.resolve(`src/markdown/${slug}.md`), mdContent)
         console.log("markdown file created...", `markdown/${slug}.md`)
+  
+        let post = db.get("posts").find({slug: slug}).value()
+        if(!post) {
+          let newPost = db.get('posts')
+            .push({id, author_id, slug, title, cover, path: `markdown/${slug}.md`, tags: JSON.parse(tags), created_at: new Date()})
+            .write()
+    
+          response(res, 200, {post: newPost})
+        } else {
+          response(res, 400, "post already created..")
+        }
+        
       } catch (ex){
         console.log("markdown file created fail...")
-        console.log(ex)
+        errorConsole(ex)
+        response(res, 400, {message: "post not create because markdown file creation fail"})
       }
-    }
-
-    let post = db.get("posts").find({slug: slug}).value()
-    if(!post) {
-      let newPost = db.get('posts')
-        .push({id, author_id, slug, title, cover, path: `markdown/${slug}.md`, tags: JSON.parse(tags), created_at: new Date()})
-        .write()
-
-      response(res, 200, {post: newPost})
     } else {
-      response(res, 400, "post already created..")
+      response(res, 400, {message: "post not create because markdown content are empty"})
     }
-
   })
 
   // let { title, cover, author_id, mdContent, tags } = req.body
@@ -206,58 +233,51 @@ export const getPostContent = async (req, res, next) =>{
   let { post_id } = req.params
  
   let fPost = db.get("posts").find({id: post_id}).value()
-  try {
-    let p = MDFilepath(fPost.path)
-    
-    let o = req.host === "localhost" ? 'http://'+ req.rawHeaders[1] : "https://" + req.rawHeaders[1]
-    
-    let content = await readFile(p, "utf-8")
-    
-    if (content) {
-    
-      let g = content.replaceAll(`<img src="`, `<img src="${o}`)
   
-      let post = visitorDB.get("postHits").find({post_id: fPost.id}).value()
+  try {
+    if(fPost) {
       
-      if(post){
-        if(post.hits){
-          post.hits = Number(post.hits) + 1
+      let p = MDFilepath(fPost.path)
+      let content = await readFile(p, "utf-8")
+      
+      if (content) {
+        let post = visitorDB.get("postHits").find({post_id: fPost.id}).value()
+        if(post){
+          if(post.hits){
+            post.hits = Number(post.hits) + 1
+          } else {
+            post.hits = 1
+          }
+          let newVi = visitorDB.get("postHits").assign(post).write()
         } else {
-          post.hits = 1
-          // post.hits = [Date.now().toString().slice(3)]
+          let newVi = visitorDB.get("postHits").push({
+            post_id: fPost.id,
+            hits: 1
+          }).write()
         }
-        let newVi = visitorDB.get("postHits").assign(post).write()
-        
+    
+        marked.setOptions({
+          highlight: function(code, lang) {
+            const hljs = require('highlight.js');
+            const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+            return hljs.highlight(code, { language }).value;
+          },
+        })
+
+        marked.parse(content, (err, html) => {
+          if(!err) {
+            response(res, 200, {mdContent: html})
+          } else{
+            response(res, 200, {mdContent: ""})
+          }
+        });
+
       } else {
-        let newVi = visitorDB.get("postHits").push({
-          post_id: fPost.id,
-          hits: 1
-        }).write()
-        
+        response(res, 200, {mdContent: ""})
       }
       
-  
-      marked.setOptions({
-        highlight: function(code, lang) {
-          const hljs = require('highlight.js');
-          const language = hljs.getLanguage(lang) ? lang : 'plaintext';
-          return hljs.highlight(code, { language }).value;
-        },
-      })
-  
-  
-      marked.parse(g, (err, html) => {
-        
-        if(!err) {
-          response(res, 200, {mdContent: html})
-        } else{
-          response(res, 200, {mdContent: ""})
-        }
-
-      });
-    } else {
-      response(res, 200, {mdContent: ""})
     }
+    
   } catch (ex){
     console.log(ex.message)
     response(res, 200, {mdContent: ""})

@@ -2,15 +2,18 @@ import response from "../response";
 import {createToken, parseToken} from "../jwt";
 import errorConsole from "../logger/errorConsole";
 const shortid = require("shortid")
-const low = require('lowdb')
-const FileSync = require('lowdb/adapters/FileSync')
-const db = low(new FileSync('./src/database/db.json'))
 const bcryptjs  = require("bcryptjs")
 import express, { Request, Response } from 'express';
 import visitorDB from "../database/visitorDB";
 import getAppCookies from "../utilities/getAppCookies";
 import createZip from "../utilities/makeZip";
 import fs from "fs";
+import formidable from 'formidable';
+import {uploadImage} from "../cloudinary";
+
+import db from "../database/db";
+import path from "path";
+
 
 export const createNewUser = async (req, res, next)=>{
   try {
@@ -72,7 +75,7 @@ export const loginUser = async (req, res)=>{
 export const loginViaToken = async (req, res)=>{
   try {
     let token = req.headers["token"]
-    if(!token) return response(res, null, "token not found")
+    if(!token) return response(res, 404, "token not found")
     let { id, email } =  await parseToken(token)
     let user = db.get('users').find({ email: email }).value()
     let {password, ...other} = user
@@ -136,24 +139,125 @@ export const getUser = (req: Request, res: Response)=>{
      day_visitor: day_visitor,
      total_visitor: total_visitor,
    })
-   
  }
  
+ 
  export const makeDataBackup  = async (req, res)=>{
-   let backupFiles = ["database", "markdown"]
-   let ii = 0
-   backupFiles.forEach((bkk, i)=>{
-     ii = ii + 1
-     createZip(`./src/${bkk}`, `src/backup/${bkk}.zip`)
-       .then(r=>{
-         if(backupFiles.length === ii) {
-           createZip(`src/backup`, `src/backup.zip`).then(rr=>{
-             const stream = fs.createReadStream(__dirname + '/backup.zip')
-             stream.pipe(res)
-           })
-         }
-        
-       })
-    
+   createZip().then(r=>{
+     const stream = fs.createReadStream( path.resolve('src/backup/files.zip'))
+      stream.pipe(res)
    })
  }
+ 
+ export const uploadProfilePhoto = (req, res, next)=>{
+  
+   const form = formidable({multiples: true})
+   form.parse(req, async (err, fields, files)=> {
+    
+     if (err) {
+       console.log(err)
+       return
+     }
+     
+      if(files && files.avatar) {
+        
+        let tempDir = files.avatar.filepath.replace(files.avatar.newFilename, '')
+        let newPath = tempDir + files.avatar.originalFilename
+        fs.rename(files.avatar.filepath, newPath, async (err) => {
+      
+          if (!err) {
+            uploadImage(newPath).then(image => {
+              if (image.secure_url) {
+                let r = db.get("users").find({id: req.user_id}).assign({avatar: image.secure_url}).write()
+                if (r) {
+                  fs.rm(newPath, () => {
+                  })
+                  res.json({message: "profile photo has been changed", avatar: image.secure_url})
+                }
+            
+              } else {
+                fs.rm(newPath, () => {
+                })
+                res.json({message: "avatar photo upload fail", avatar: ""})
+              }
+            })
+          }
+        })
+      }
+    
+   })
+   
+}
+
+
+ export const uploadProfileCoverPhoto = (req, res, next)=>{
+   const form = formidable({multiples: true})
+   
+   form.parse(req, async (err, fields, files)=> {
+  
+     if (err) {
+       console.log(err)
+       return
+     }
+  
+     if(files && files.cover) {
+  
+       let tempDir = files.cover.filepath.replace(files.cover.newFilename, '')
+       let newPath = tempDir + files.cover.originalFilename
+       fs.rename(files.cover.filepath, newPath, async (err) => {
+    
+         if (!err) {
+           uploadImage(newPath).then(image => {
+             if (image.secure_url) {
+               let r = db.get("users").find({id: req.user_id}).assign({cover: image.secure_url}).write()
+               if (r) {
+                 fs.rm(newPath, () => {
+                 })
+                 res.json({message: "cover photo has been changed", cover: image.secure_url})
+               }
+          
+             } else {
+               fs.rm(newPath, () => {
+               })
+               res.json({message: "cover photo upload fail", avatar: ""})
+             }
+           })
+         }
+       })
+     }
+   })
+}
+
+ export const uploadMarkdownImage = (req, res, next)=>{
+   const form = formidable({multiples: false})
+   
+   form.parse(req, async (err, fields, files)=> {
+  
+     if (err) {
+       console.log(err)
+       return
+     }
+  
+     if(files && files.photo) {
+  
+       let tempDir = files.photo.filepath.replace(files.photo.newFilename, '')
+       let newPath = tempDir + files.photo.originalFilename
+       fs.rename(files.photo.filepath, newPath, async (err) => {
+         if (!err) {
+           uploadImage(newPath).then(image => {
+             if (image.secure_url) {
+                fs.rm(newPath, () => {  })
+                res.json({message: "markdown image upload complete", path: image.secure_url})
+             } else {
+               fs.rm(newPath, () => {  })
+               res.json({message: "markdown image upload fail", path: ""})
+             }
+           })
+             .catch(ex=>{
+               res.status(500).json({message: "markdown image upload fail", path: ""})
+             })
+         }
+       })
+     }
+   })
+}

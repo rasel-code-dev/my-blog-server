@@ -2,6 +2,7 @@
 import getAuthID from "../middlewares/getAuthID"
 
 import controllers from "../controllers"
+import {createComment} from "../controllers/commentController";
 
 export default (app)=>{
 
@@ -16,5 +17,13 @@ export default (app)=>{
   app.get("/api/raw-md-content/:post_id", controllers.postController.getRawMarkdownContent)
   
   app.post("/api/toggle-like", getAuthID, controllers.postController.handleToggleLike)
+  
+  
+  app.post("/api/comment", getAuthID, controllers.commentController.createComment)
+  
+  
+  // ?post_id=1&comment_id=1
+  app.delete("/api/comment", getAuthID, controllers.commentController.deleteComment)
+  
 
 }

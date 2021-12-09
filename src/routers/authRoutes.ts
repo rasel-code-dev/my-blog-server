@@ -13,4 +13,9 @@ export default (app)=>{
   
   app.get("/api/backup", getAuthID, controllers.authController.makeDataBackup)
   
+  app.post("/api/upload-profile-photo", getAuthID, controllers.authController.uploadProfilePhoto)
+  app.post("/api/upload-profile-cover-photo", getAuthID, controllers.authController.uploadProfileCoverPhoto)
+  
+  app.post("/api/upload-markdown-image", getAuthID, controllers.authController.uploadMarkdownImage)
+  
 }

@@ -26,12 +26,11 @@ c.forEach((methodName) => {
 });
 
 
+import routes  from "./routers/index"
+import {uploadImage} from "./cloudinary";
 
 require("dotenv").config()
 
-import routes  from "./routers/index"
-import * as fs from "fs";
-import getAuthID from "./middlewares/getAuthID";
 
 const app = express()
 const whitelist = ["http://localhost:5500", "https://rasel-code-dev.github.io"]
@@ -64,7 +63,15 @@ app.use("/markdown/images/", express.static("src/markdown/images/"))
 app.use("/static/", express.static("src/static/"))
 
 
+
+// app.get("/", async (req, res)=>{
+//     let image = await uploadImage( "./src/static/avatar/42914006_20200412_1312170.jpg")
+//     console.log(image.secure_url)
+// })
+
+
 routes(app)
+
 
 const PORT = process.env.PORT || 3300
 
