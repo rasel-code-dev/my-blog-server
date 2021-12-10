@@ -63,17 +63,10 @@ app.use("/markdown/images/", express.static("src/markdown/images/"))
 app.use("/static/", express.static("src/static/"))
 
 
-
-// app.get("/", async (req, res)=>{
-//     let image = await uploadImage( "./src/static/avatar/42914006_20200412_1312170.jpg")
-//     console.log(image.secure_url)
-// })
-
+const PORT = process.env.PORT || 3300
 
 routes(app)
 
-
-const PORT = process.env.PORT || 3300
 
 app.listen(PORT, ()=> console.log(`server is running on port ${PORT}`) )
 

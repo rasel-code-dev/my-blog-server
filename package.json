@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf ./dist",
-    "start": "nodemon -w src/database/  dist/src/server.js",
+    "start": "node dist/src/server.js",
     "deploy": "git add . && git commit -m Heroku && git push origin master",
     "dev": "set NODE_ENV=development&ts-node-dev --respawn --transpile-only src/server.ts"
   },
