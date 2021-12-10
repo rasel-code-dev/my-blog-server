@@ -1,1 +1,1 @@
-web: nodemon -w src/database/  dist/src/server.js
+web: 'nodemon -w src/database/ dist/src/server.js'
