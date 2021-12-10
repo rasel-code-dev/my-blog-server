@@ -15,3 +15,8 @@ export function MDDirpath(){
   // D:\Code\my-doc-blog\server\src\markdown\working_with_recursive_function.md
 }
 
+export function DBDirpath(){
+  return path.resolve(`src/database`)
+  // D:\Code\my-doc-blog\server\src\markdown\working_with_recursive_function.md
+}
+

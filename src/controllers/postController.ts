@@ -342,14 +342,3 @@ export const handleToggleLike = async (req, res)=>{
   }
 }
 
-export const getMarkDownFileList = async (req, res)=>{
-  fs.readdir(MDDirpath(), (err, doc)=>{
-    if(err){
-      res.send(err)
-    } else {
-      res.send(doc)
-    }
-  })
-  
-}
-

@@ -2,7 +2,6 @@
 
 import controllers from "../controllers"
 import getAuthID from "../middlewares/getAuthID";
-import {getMarkDownFileList} from "../controllers/postController";
 
 export default (app)=>{
   app.post("/api/auth/login", controllers.authController.loginUser)
@@ -11,8 +10,7 @@ export default (app)=>{
   app.post("/api/auth/users", controllers.authController.createNewUser)
   
   app.post("/api/add-cookie", controllers.authController.cookieAdd)
-  
-  app.get("/api/backup", getAuthID, controllers.authController.makeDataBackup)
+
   
   app.post("/api/upload-profile-photo", getAuthID, controllers.authController.uploadProfilePhoto)
   app.post("/api/upload-profile-cover-photo", getAuthID, controllers.authController.uploadProfileCoverPhoto)

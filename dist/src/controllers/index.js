@@ -22,5 +22,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const postController = __importStar(require("./postController"));
 const authController = __importStar(require("./authController"));
 const commentController = __importStar(require("./commentController"));
-exports.default = { postController, authController, commentController };
-//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiaW5kZXguanMiLCJzb3VyY2VSb290IjoiLi9zcmMvIiwic291cmNlcyI6WyJzcmMvY29udHJvbGxlcnMvaW5kZXgudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7O0FBR0EsaUVBQW1EO0FBQ25ELGlFQUFtRDtBQUNuRCx1RUFBeUQ7QUFDekQsa0JBQWUsRUFBRSxjQUFjLEVBQUUsY0FBYyxFQUFFLGlCQUFpQixFQUFFLENBQUEifQ==
+const filesController = __importStar(require("./filesController"));
+exports.default = { postController, authController, commentController, filesController };
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiaW5kZXguanMiLCJzb3VyY2VSb290IjoiLi9zcmMvIiwic291cmNlcyI6WyJzcmMvY29udHJvbGxlcnMvaW5kZXgudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7O0FBR0EsaUVBQW1EO0FBQ25ELGlFQUFtRDtBQUNuRCx1RUFBeUQ7QUFDekQsbUVBQXFEO0FBQ3JELGtCQUFlLEVBQUUsY0FBYyxFQUFFLGNBQWMsRUFBRSxpQkFBaUIsRUFBRSxlQUFlLEVBQUUsQ0FBQSJ9

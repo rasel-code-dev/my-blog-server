@@ -13,6 +13,7 @@ import {uploadImage} from "../cloudinary";
 
 import db from "../database/db";
 import path from "path";
+import replaceOriginalFilename from "../utilities/replaceOriginalFilename";
 
 
 export const createNewUser = async (req, res, next)=>{
@@ -126,9 +127,9 @@ export const getUser = (req: Request, res: Response)=>{
    
    let day_visitor = visitorDB.get("app_visitor").find({ day_visitor: ''}).value()
    if(day_visitor){
-     day_visitor.ids.push(randomID)
+     day_visitor.ids = Number(day_visitor.ids) +  1
    } else {
-     day_visitor = {day_visitor: "", ids: [randomID]}
+     day_visitor = {day_visitor: "", ids: 1}
    }
    
    visitorDB.get("app_visitor").assign({ day_visitor: day_visitor}).write()
@@ -142,13 +143,6 @@ export const getUser = (req: Request, res: Response)=>{
  }
  
  
- export const makeDataBackup  = async (req, res)=>{
-   createZip().then(r=>{
-     const stream = fs.createReadStream( path.resolve('src/backup/files.zip'))
-      stream.pipe(res)
-   })
- }
- 
  export const uploadProfilePhoto = (req, res, next)=>{
   
    const form = formidable({multiples: true})
@@ -158,32 +152,24 @@ export const getUser = (req: Request, res: Response)=>{
        console.log(err)
        return
      }
-     
-      if(files && files.avatar) {
-        
-        let tempDir = files.avatar.filepath.replace(files.avatar.newFilename, '')
-        let newPath = tempDir + files.avatar.originalFilename
-        fs.rename(files.avatar.filepath, newPath, async (err) => {
-      
-          if (!err) {
-            uploadImage(newPath).then(image => {
-              if (image.secure_url) {
-                let r = db.get("users").find({id: req.user_id}).assign({avatar: image.secure_url}).write()
-                if (r) {
-                  fs.rm(newPath, () => {
-                  })
-                  res.json({message: "profile photo has been changed", avatar: image.secure_url})
-                }
-            
-              } else {
-                fs.rm(newPath, () => {
-                })
-                res.json({message: "avatar photo upload fail", avatar: ""})
-              }
+  
+     let {newPath, name} = await replaceOriginalFilename(files, "avatar")
+      uploadImage(newPath).then(image => {
+        if (image.secure_url) {
+          let r = db.get("users").find({id: req.user_id}).assign({avatar: image.secure_url}).write()
+          if (r) {
+            fs.rm(newPath, () => {
             })
+            res.json({message: "profile photo has been changed", avatar: image.secure_url})
           }
-        })
-      }
+      
+        } else {
+          fs.rm(newPath, () => {
+          })
+          res.json({message: "avatar photo upload fail", avatar: ""})
+        }
+      })
+     
     
    })
    
