@@ -64,15 +64,17 @@ export const getPost = (req, res, next) =>{
     fPost = db.get("posts").find({slug: slug}).value()
   }
   
-  let postHit = visitorDB.get("postHits").find({post_id: fPost.id}).value()
-  if(postHit){
-    hits = postHit.hits
-  }
-  
-  let comments = db.get("comments").filter({post_id: fPost.id}).value()
-  
-  let { password, role, ...other } = db.get("users").find({id: fPost.author_id}).value()
   if (fPost) {
+  
+    let postHit = visitorDB.get("postHits").find({post_id: fPost.id}).value()
+    if(postHit){
+      hits = postHit.hits
+    }
+  
+    let comments = db.get("comments").filter({post_id: fPost.id}).value()
+  
+    let { password, role, ...other } = db.get("users").find({id: fPost.author_id}).value()
+    
     
       response(res, 200, {
         post: {
@@ -129,21 +131,44 @@ export const addPost = async (req, res, next) =>{
 
     if(mdContent){
       try {
+     
+        let result = ""
+        function deleteLastIndex(str) {
+          if(str) {
+            let isLastIndex = str[str.length - 1] !== "-"
+            if(isLastIndex){
+              result = str
+            } else {
+              let deletedLast = str.slice(0, str.length - 1)
+              deleteLastIndex(deletedLast)
+            }
+          }
+        }
+        deleteLastIndex(slug)
+        slug = result
+        if(!slug){
+          return response(res, 400, {
+            message: "post not create because slug create fali",
+            slug: slug
+          })
+        }
+        
         let r = await writeFile(path.resolve(`src/markdown/${slug}.md`), mdContent)
         console.log("markdown file created...", `markdown/${slug}.md`)
-  
+
         let post = db.get("posts").find({slug: slug}).value()
         if(!post) {
           let newPost = db.get('posts')
             .push({id, author_id, slug, title, cover, path: `markdown/${slug}.md`, tags: JSON.parse(tags), created_at: new Date()})
             .write()
-    
+
           response(res, 200, {post: newPost})
         } else {
           response(res, 400, "post already created..")
         }
         
       } catch (ex){
+        console.log(ex.message)
         console.log("markdown file created fail...")
         errorConsole(ex)
         response(res, 400, {message: "post not create because markdown file creation fail"})
