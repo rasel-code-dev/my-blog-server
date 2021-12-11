@@ -109,7 +109,8 @@ export const getUser = (req: Request, res: Response)=>{
      res.cookie('browser_uuid', randomID, {
          maxAge: ((1000 * 3600) * 24) * 30, // 30days
          httpOnly: false,
-         domain: 'https://rasel-code-dev.github.io',
+        //  domain: 'https://rasel-code-dev.github.io',
+      
          sameSite: 'none',
          // Forces to use https in production
          secure: process.env.NODE_ENV !== 'development'
