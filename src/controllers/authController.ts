@@ -76,8 +76,13 @@ export const loginViaToken = async (req, res)=>{
     if(!token) return response(res, 404, "token not found")
     let { id, email } =  await parseToken(token)
     let user = db.get('users').find({ email: email }).value()
+    if(user){
     let {password, ...other} = user
     response(res, 201, other)
+  }else{
+    response(res, 404, {message: "User not found"})
+
+    }
   } catch (ex){
     errorConsole(ex)
     return response(res, 500, ex.message)
@@ -100,7 +105,6 @@ export const getUser = (req: Request, res: Response)=>{
    let total_visitor = visitorDB.get("app_visitor").find({ total_visitor: ''}).value()
    
 
-   console.log(getAppCookies(req));
    
    if(getAppCookies(req).browser_uuid) {
      // response(res, 200, {message: "cookie already exists"})
@@ -115,8 +119,6 @@ export const getUser = (req: Request, res: Response)=>{
          // Forces to use https in production
          secure: process.env.NODE_ENV !== 'development'
        });
-
-       console.log(process.env.NODE_ENV, "---------------------");
        
      
      // increase total visitor....
