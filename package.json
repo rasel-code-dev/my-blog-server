@@ -9,7 +9,8 @@
     "clean": "rm -rf ./dist",
     "start": "node dist/src/server.js",
     "deploy": "git add . && git commit -m Heroku && git push origin master",
-    "dev": "set NODE_ENV=development&ts-node-dev --respawn --transpile-only src/server.ts"
+    "dev": "set NODE_ENV=development&ts-node-dev --respawn --transpile-only src/server.ts",
+    "heroku": "heroku local"
   },
   "engines": {
     "node": ">=16.13.0"
