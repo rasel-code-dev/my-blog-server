@@ -2,14 +2,15 @@ node_modules
 .idea
 .env
 
-dist/src/database/db.json
-dist/src/database/visitor.db.json
-dist/src/markdown/*
-dist/src/backup/*
+# dist/src/database/db.json
+# dist/src/database/visitor.db.json
+# dist/src/markdown/*
+# dist/src/backup/*
 
-src/database/db.json
-src/database/visitor.db.json
-src/markdown/*
-src/backup/*
+# src/database/db.json
+# src/database/visitor.db.json
+# src/markdown/*
+# src/backup/*
 
 previews/*
+client/*

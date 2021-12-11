@@ -99,6 +99,8 @@ export const getUser = (req: Request, res: Response)=>{
    let randomID = Math.ceil(Date.now() / 1000)
    let total_visitor = visitorDB.get("app_visitor").find({ total_visitor: ''}).value()
    
+
+   console.log(getAppCookies(req));
    
    if(getAppCookies(req).browser_uuid) {
      // response(res, 200, {message: "cookie already exists"})
@@ -106,11 +108,13 @@ export const getUser = (req: Request, res: Response)=>{
    } else{
      res.cookie('browser_uuid', randomID, {
          maxAge: ((1000 * 3600) * 24) * 30, // 30days
-         // You can't access these tokens in the client's javascript
          httpOnly: false,
          // Forces to use https in production
          secure: process.env.NODE_ENV !== 'development'
        });
+
+       console.log(process.env.NODE_ENV, "---------------------");
+       
      
      // increase total visitor....
      
