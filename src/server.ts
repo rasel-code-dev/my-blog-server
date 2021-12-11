@@ -33,6 +33,7 @@ require("dotenv").config()
 
 
 const app = express()
+app.set('trust proxy', 1)
 const whitelist = ["http://localhost:5500", "https://rasel-code-dev.github.io"]
 const corsOptions = {
     credentials: true,
