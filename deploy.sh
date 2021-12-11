@@ -25,6 +25,6 @@ git commit -m 'deploy'
 #git push -f https://github.com/rasel-code-dev/my-blog-server.git master:deploy
 
 git checkout -b deploy
-
+#
 # if deploy via heroku cli
 #git push -f heroku
