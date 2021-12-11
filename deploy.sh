@@ -27,7 +27,7 @@ git commit -m 'deploy'
 #git checkout -b deploy
 #
 # if deploy via heroku cli
-git push -f heroku
+git push heroku
 # /
 
 # 

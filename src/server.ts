@@ -2,7 +2,7 @@ import express  from "express"
 import cors from "cors";
 import path from "path"
 import bodyParser from "body-parser"
-var session = require('express-session')
+// var session = require('express-session')
 let isDev = process.env.NodeENV === "development"
 
 let c = ['debug', 'log', 'warn', 'error']
@@ -56,12 +56,12 @@ const corsOptions = {
 app.use(cors(corsOptions))
 
 
-app.use(session({
-    secret: "process.env.SECRET",
-    resave: false,
-    saveUninitialized: true,
-    cookie: {  httpOnly: true, secure: true, maxAge: 1000 * 60 * 60 * 48, sameSite: 'none' }
-  }))
+// app.use(session({
+//     secret: "process.env.SECRET",
+//     resave: false,
+//     saveUninitialized: true,
+//     cookie: {  httpOnly: true, secure: true, maxAge: 1000 * 60 * 60 * 48, sameSite: 'none' }
+//   }))
 
 
 // app.use(function(req, res, next) {
