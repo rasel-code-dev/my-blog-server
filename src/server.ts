@@ -66,7 +66,7 @@ app.use("/static/", express.static("src/static/"))
 
 // set the view engine to ejs
 app.set('view engine', 'ejs');
-app.set('views', path.resolve(__dirname, '/src/views')) // custom views path
+app.set('views', path.resolve('src/views')) // custom views path
 
 app.get("/pink", (req, res)=>res.send("pong"))
 
