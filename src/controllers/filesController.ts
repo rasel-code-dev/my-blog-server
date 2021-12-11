@@ -86,40 +86,49 @@ export const saveFileContent = async (req, res)=>{
   }
 }
 
-export const getMarkDownFileList = async (req, res)=>{
-  let mdFiles = await readdir(MDDirpath())
-  let dbFiles = await readdir(DBDirpath())
+export const getDBFileList = async () =>{
+  return new Promise<{markdownFiles?: any[], databaseFiles?: any[] }>(async (resolve, reject)=>{
+    let mdFiles = await readdir(MDDirpath())
+    let dbFiles = await readdir(DBDirpath())
   
-  let mdFilesD = []
+    let mdFilesD = []
   
-  for (const file of mdFiles) {
-    let a = await stat(MDDirpath() + "/" +  file)
-    mdFilesD.push({
-      dir: a.isDirectory(),
-      modifyTime: a.mtime,
-      name: file,
-      path: MDDirpath() + "/" +  file,
-      size: a.size
+    for (const file of mdFiles) {
+      let a = await stat(MDDirpath() + "/" +  file)
+      mdFilesD.push({
+        dir: a.isDirectory(),
+        modifyTime: a.mtime,
+        name: file,
+        path: MDDirpath() + "/" +  file,
+        size: a.size
+      })
+    }
+  
+    let dbFilesD = []
+    for (const file of dbFiles) {
+      let a = await stat(DBDirpath() + "/" +  file)
+      dbFilesD.push({
+        dir: a.isDirectory(),
+        modifyTime: a.mtime,
+        name: file,
+        path: DBDirpath() + "/" +  file,
+        size: a.size
+      })
+    }
+    
+    resolve({
+      markdownFiles: mdFilesD ? mdFilesD : [],
+      databaseFiles: dbFilesD ? dbFilesD: []
     })
-  }
-  
-  let dbFilesD = []
-  for (const file of dbFiles) {
-    let a = await stat(DBDirpath() + "/" +  file)
-    dbFilesD.push({
-      dir: a.isDirectory(),
-      modifyTime: a.mtime,
-      name: file,
-      path: DBDirpath() + "/" +  file,
-      size: a.size
-    })
-  }
-
-  
-  response(res, 201, {
-    markdownFiles: mdFilesD ? mdFilesD : [],
-    databaseFiles: dbFilesD ? dbFilesD : []
+    
   })
+}
+
+export const getMarkDownFileList = async (req, res)=>{
+  let files =  await getDBFileList()
+  if(files){
+    response(res, 201, files)
+  }
 }
 
 
@@ -128,7 +137,6 @@ export const  uploadFile = async (req, res)=>{
   form.parse(req, async (err, fields, files)=> {
   
     if (err) {
-      console.log(err)
       return response(res, 500, {
         message: "File upload fail. " + err.message
       })

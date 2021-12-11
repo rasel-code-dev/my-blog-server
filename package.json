@@ -12,7 +12,7 @@
     "dev": "set NODE_ENV=development&ts-node-dev --respawn --transpile-only src/server.ts"
   },
   "engines": {
-    "node":  ">=16.13.0"
+    "node": ">=16.13.0"
   },
   "dependencies": {
     "@sindresorhus/slugify": "^2.1.0",
@@ -23,6 +23,7 @@
     "cookies": "^0.8.0",
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",
+    "ejs": "^3.1.6",
     "express": "^4.17.1",
     "formidable": "^2.0.1",
     "highlight.js": "^11.3.1",

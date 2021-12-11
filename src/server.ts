@@ -1,7 +1,7 @@
 import express  from "express"
 import cors from "cors";
 import path from "path"
-
+import bodyParser from "body-parser"
 
 let isDev = process.env.NodeENV === "development"
 
@@ -58,13 +58,16 @@ app.use(cors(corsOptions))
 // });
 
 app.use(express.json())
+app.use(bodyParser.urlencoded({ extended: false }))
+
 app.use("/markdown/cover/", express.static("src/markdown/cover/"))
 app.use("/markdown/images/", express.static("src/markdown/images/"))
 app.use("/static/", express.static("src/static/"))
 
-app.get("/", (req, res)=>{
-    res.status(200).send("ok")
-})
+// set the view engine to ejs
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, '/views')) // custom views path
+
 
 
 const PORT = process.env.PORT || 3300
