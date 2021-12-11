@@ -1,0 +1,17 @@
+{
+  "users": [
+    {
+      "id": "X71lHJqu_",
+      "first_name": "Rasel",
+      "last_name": "Mahmud",
+      "email": "raselmr005@gmail.com",
+      "password": "$2a$10$q/ySVi1h.ngwDuOyosPImOq6fF3OQiHuWmXVuwSxsjqKlgCGzlENK",
+      "avatar": "",
+      "username": "",
+      "role": "admin",
+      "created_at": "2021-11-10T13:31:03.542Z",
+      "updated_at": "2021-11-10T13:31:03.542Z",
+         "cover": ""
+    }
+  ]
+}

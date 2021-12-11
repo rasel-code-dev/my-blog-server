@@ -88,40 +88,50 @@ export const saveFileContent = async (req, res)=>{
 
 export const getDBFileList = async () =>{
   return new Promise<{markdownFiles?: any[], databaseFiles?: any[] }>(async (resolve, reject)=>{
-    // let mdFiles = await readdir(MDDirpath())
-    let dbFiles = await readdir(DBDirpath())
-  
-    let mdFilesD = []
-  
-    // for (const file of mdFiles) {
-    //   let a = await stat(MDDirpath() + "/" +  file)
-    //   mdFilesD.push({
-    //     dir: a.isDirectory(),
-    //     modifyTime: a.mtime,
-    //     name: file,
-    //     path: MDDirpath() + "/" +  file,
-    //     size: a.size
-    //   })
-    // }
-  
-    let dbFilesD = []
-    for (const file of dbFiles) {
-      let a = await stat(DBDirpath() + "/" +  file)
-      dbFilesD.push({
-        dir: a.isDirectory(),
-        modifyTime: a.mtime,
-        name: file,
-        path: DBDirpath() + "/" +  file,
-        size: a.size
+    try{
+      // let mdFiles = await readdir(MDDirpath())
+        let dbFiles = await readdir(DBDirpath())
+      
+        let mdFilesD = []
+      
+        // for (const file of mdFiles) {
+        //   let a = await stat(MDDirpath() + "/" +  file)
+        //   mdFilesD.push({
+        //     dir: a.isDirectory(),
+        //     modifyTime: a.mtime,
+        //     name: file,
+        //     path: MDDirpath() + "/" +  file,
+        //     size: a.size
+        //   })
+        // }
+      
+        let dbFilesD = []
+        for (const file of dbFiles) {
+          let a = await stat(DBDirpath() + "/" +  file)
+          dbFilesD.push({
+            dir: a.isDirectory(),
+            modifyTime: a.mtime,
+            name: file,
+            path: DBDirpath() + "/" +  file,
+            size: a.size
+          })
+        }
+        
+        resolve({
+          markdownFiles: mdFilesD ? mdFilesD : [],
+          databaseFiles: dbFilesD ? dbFilesD: []
+        })
+      
+    } catch(ex){
+      console.log(ex.message)
+      resolve({
+        markdownFiles: [],
+        databaseFiles:  []
       })
     }
     
-    resolve({
-      markdownFiles: mdFilesD ? mdFilesD : [],
-      databaseFiles: dbFilesD ? dbFilesD: []
-    })
-    
   })
+  
 }
 
 export const getMarkDownFileList = async (req, res)=>{

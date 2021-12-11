@@ -1,7 +1,6 @@
 node_modules
 .idea
 .env
-dist/src/database/db.json
 dist/src/database/visitor.db.json
 dist/src/markdown/*
 dist/src/backup/*
