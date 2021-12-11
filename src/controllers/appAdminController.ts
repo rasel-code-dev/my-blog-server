@@ -32,7 +32,7 @@ export const adminLogin  = async (req, res)=>{
         res.render("pages/admin-homepage", {
           message: "Welcome Mr. Rasel Mahmud",
           database: files.databaseFiles,
-          markdown: files.markdownFiles
+          markdown: []
         })
       }
     } else {
