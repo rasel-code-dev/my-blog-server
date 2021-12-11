@@ -3,5 +3,7 @@ node_modules
 .env
 dist/src/database/*
 dist/src/markdown/*
+dist/src/backup/*
 src/database/*
 src/markdown/*
+src/backup/*
