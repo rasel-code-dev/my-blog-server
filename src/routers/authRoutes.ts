@@ -16,6 +16,11 @@ export default (app)=>{
   app.post("/api/upload-profile-cover-photo", getAuthID, controllers.authController.uploadProfileCoverPhoto)
   
   app.post("/api/upload-markdown-image", getAuthID, controllers.authController.uploadMarkdownImage)
+  
+  app.post("/api/update-profile", getAuthID, controllers.authController.updateProfile)
+  
+  app.get("/api/get-auth-password", getAuthID, controllers.authController.getAuthPassword)
+
 
   
 }

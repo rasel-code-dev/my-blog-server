@@ -4,8 +4,8 @@
       "id": "X71lHJqu_",
       "first_name": "Rasel",
       "last_name": "Mahmud",
-      "email": "rasel@gmail.com",
-      "password": "$2a$10$LrA6OqS5Kvrz4snRpIZOje52xMPvEOMgRrsu5ZvUEQuyYmoLk.FCC",
+      "email": "raselmr005@gmail.com",
+      "password": "$2a$10$q/ySVi1h.ngwDuOyosPImOq6fF3OQiHuWmXVuwSxsjqKlgCGzlENK",
       "avatar": "https://res.cloudinary.com/dbuvg9h1e/image/upload/v1639027976/my-avatar-300x300.jpg",
       "username": "rasel_mahmud",
       "role": "admin",
@@ -106,26 +106,27 @@
     {
       "id": "Jrby14W4T",
       "author_id": "y6hXv1owV",
-      "slug": "স্বল্পভাষীতা-আশির্বাদ-নাকি-অভিশাপ-123",
+      "slug": "স্বল্পভাষীতা-আশির্বাদ-নাকি-অভিশাপ",
       "title": "স্বল্পভাষীতা-আশির্বাদ নাকি অভিশাপ",
       "cover": "https://scontent.fdac68-1.fna.fbcdn.net/v/t1.6435-9/160426666_2876291082691560_3254558813210355671_n.jpg?_nc_cat=102&ccb=1-5&_nc_sid=8bfeb9&_nc_eui2=AeFmxbNtXxW8CsMYSvBzdv-MsgtqXve-VlayC2pe975WVpP1QOQQza9nybcENYImmHNaBvaa3GLb386V67vL0eYJ&_nc_ohc=zSMG_9WJxGMAX8zMCpx&_nc_ht=scontent.fdac68-1.fna&oh=b29e99c7f589cc94d3927e44f4fed5c6&oe=61D94AC1",
-      "path": "markdown/স্বল্পভাষীতা-আশির্বাদ-নাকি-অভিশাপ-123.md",
+      "path": "markdown/স্বল্পভাষীতা-আশির্বাদ-নাকি-অভিশাপ.md",
       "tags": [
         "অভিশাপ আশির্বাদ",
         "স্বল্পভাষীতা"
       ],
       "created_at": "2021-12-09T10:05:57.960Z",
       "likes": [
-        "X71lHJqu_"
+        "X71lHJqu_",
+        "y6hXv1owV"
       ]
     },
     {
       "id": "PufNiWWSb",
       "author_id": "y6hXv1owV",
-      "slug": "মেটাডেটা-কী-আপনি-কি-সত্যিই-ঝুকির-মধ্যে‌‍-",
+      "slug": "মেটাডেটা-কী-আপনি-কি-সত্যিই-ঝুকির-মধ্যে‌‍",
       "title": "মেটাডেটা কী? আপনি কি সত্যিই ঝুকির মধ্যে‌‍ ?",
       "cover": "https://thumbs.dreamstime.com/z/zero-one-hacker-coding-cracker-tries-to-hack-security-system-steal-destroy-critical-information-ransom-important-129896215.jpg",
-      "path": "markdown/মেটাডেটা-কী-আপনি-কি-সত্যিই-ঝুকির-মধ্যে‌‍-.md",
+      "path": "markdown/মেটাডেটা-কী-আপনি-কি-সত্যিই-ঝুকির-মধ্যে‌‍.md",
       "tags": [
         "মেটাডেটা",
         "ঝুকি",
@@ -171,7 +172,8 @@
         "programming",
         "es6",
         "npm",
-        "node.js"
+        "node.js",
+        "nodejs"
       ],
       "created_at": "2021-12-09T16:57:08.491Z"
     }
@@ -185,16 +187,6 @@
       "username": "Raju Sarker",
       "avatar": "https://res.cloudinary.com/dbuvg9h1e/image/upload/v1638955504/42914006_20200412_1312170.jpg",
       "created_at": "2021-12-09T18:37:09.161Z",
-      "reply": null
-    },
-    {
-      "id": "bU4G8O5ad",
-      "post_id": "Jrby14W4T",
-      "text": "dsfdsf",
-      "user_id": "X71lHJqu_",
-      "username": "rasel_mahmud",
-      "avatar": "https://res.cloudinary.com/dbuvg9h1e/image/upload/v1639027976/my-avatar-300x300.jpg",
-      "created_at": "2021-12-09T21:29:46.247Z",
       "reply": null
     }
   ]

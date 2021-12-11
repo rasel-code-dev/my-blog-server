@@ -62,6 +62,10 @@ app.use("/markdown/cover/", express.static("src/markdown/cover/"))
 app.use("/markdown/images/", express.static("src/markdown/images/"))
 app.use("/static/", express.static("src/static/"))
 
+app.get("/", (req, res)=>{
+    res.status(200).send("ok")
+})
+
 
 const PORT = process.env.PORT || 3300
 

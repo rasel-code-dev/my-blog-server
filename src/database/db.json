@@ -4,8 +4,8 @@
       "id": "X71lHJqu_",
       "first_name": "Rasel",
       "last_name": "Mahmud",
-      "email": "rasel@gmail.com",
-      "password": "$2a$10$LrA6OqS5Kvrz4snRpIZOje52xMPvEOMgRrsu5ZvUEQuyYmoLk.FCC",
+      "email": "raselmr005@gmail.com",
+      "password": "$2a$10$q/ySVi1h.ngwDuOyosPImOq6fF3OQiHuWmXVuwSxsjqKlgCGzlENK",
       "avatar": "https://res.cloudinary.com/dbuvg9h1e/image/upload/v1639027976/my-avatar-300x300.jpg",
       "username": "rasel_mahmud",
       "role": "admin",
@@ -116,7 +116,8 @@
       ],
       "created_at": "2021-12-09T10:05:57.960Z",
       "likes": [
-        "X71lHJqu_"
+        "X71lHJqu_",
+        "y6hXv1owV"
       ]
     },
     {
@@ -171,21 +172,10 @@
         "programming",
         "es6",
         "npm",
-        "node.js"
+        "node.js",
+        "nodejs"
       ],
       "created_at": "2021-12-09T16:57:08.491Z"
-    },
-    {
-      "id": "D0BTpjle4",
-      "author_id": "X71lHJqu_",
-      "slug": "মেটাডেটা-কী-আপনি-কি-সত্যিই-ঝুকির-মধ্যে‌‍",
-      "title": "মেটাডেটা কী? আপনি কি সত্যিই ঝুকির মধ্যে‌‍ ?",
-      "cover": "https://community-cdn-digitalocean-com.global.ssl.fastly.net/variants/NakVQu9jRsxc6TEmSSLfEjeG/035575f2985fe451d86e717d73691e533a1a00545d7230900ed786341dc3c882",
-      "path": "markdown/মেটাডেটা-কী-আপনি-কি-সত্যিই-ঝুকির-মধ্যে‌‍.md",
-      "tags": [
-        "sdf"
-      ],
-      "created_at": "2021-12-10T09:42:05.621Z"
     }
   ],
   "comments": [
@@ -197,16 +187,6 @@
       "username": "Raju Sarker",
       "avatar": "https://res.cloudinary.com/dbuvg9h1e/image/upload/v1638955504/42914006_20200412_1312170.jpg",
       "created_at": "2021-12-09T18:37:09.161Z",
-      "reply": null
-    },
-    {
-      "id": "bU4G8O5ad",
-      "post_id": "Jrby14W4T",
-      "text": "dsfdsf",
-      "user_id": "X71lHJqu_",
-      "username": "rasel_mahmud",
-      "avatar": "https://res.cloudinary.com/dbuvg9h1e/image/upload/v1639027976/my-avatar-300x300.jpg",
-      "created_at": "2021-12-09T21:29:46.247Z",
       "reply": null
     }
   ]

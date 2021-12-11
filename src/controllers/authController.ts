@@ -2,18 +2,17 @@ import response from "../response";
 import {createToken, parseToken} from "../jwt";
 import errorConsole from "../logger/errorConsole";
 const shortid = require("shortid")
-const bcryptjs  = require("bcryptjs")
+
 import express, { Request, Response } from 'express';
 import visitorDB from "../database/visitorDB";
 import getAppCookies from "../utilities/getAppCookies";
-import createZip from "../utilities/makeZip";
 import fs from "fs";
 import formidable from 'formidable';
 import {uploadImage} from "../cloudinary";
 
 import db from "../database/db";
-import path from "path";
 import replaceOriginalFilename from "../utilities/replaceOriginalFilename";
+import {createHash, hashCompare} from "../hash";
 
 
 export const createNewUser = async (req, res, next)=>{
@@ -22,15 +21,13 @@ export const createNewUser = async (req, res, next)=>{
     let {first_name, last_name, email, password } = req.body
     let user = db.get('users').find({ email: email }).value()
     if(user) return res.status(409).json({message: "User already registered"})
-    
-    let salt = await bcryptjs.genSalt(10);
-    let hashedPass = await bcryptjs.hash(password, salt)
+    const {err, hash} = await createHash(password)
     let newUser = {
       id: shortid.generate(),
       first_name,
       last_name,
       email,
-      password: hashedPass,
+      password: hash,
       avatar: "",
       username: first_name + " " + last_name,
       created_at: date,
@@ -57,7 +54,7 @@ export const loginUser = async (req, res)=>{
     let user = db.get('users').find({ email: email }).value()
    
     if(user){
-      let match = await bcryptjs.compare(password, user.password)
+      let match = await hashCompare(password, user.password)
       if(!match)  return  res.status(404).json({message: "Password not match"})
       
       let token = await createToken(user.id, user.email)
@@ -142,6 +139,55 @@ export const getUser = (req: Request, res: Response)=>{
    })
  }
  
+ export const updateProfile = async (req, res)=>{
+  
+  let user = db.get("users").find({id: req.user_id}).value()
+   if(user) {
+     const { username, first_name, last_name, email, oldPassword, newPassword } = req.body
+  
+     let setUser: {
+       password?: string, username?: string, first_name?: string, last_name?: string, email?: string
+     } = {}
+  
+  
+     if(oldPassword && newPassword) {
+       let match = await hashCompare(oldPassword, user.password)
+       if (!match) {
+         return response(res, 409, {message: "current password doesn't match"})
+       }
+     
+      let {err, hash} =  await createHash(newPassword)
+       setUser.password = hash
+       if(err){
+         return response(res, 500, {message: err })
+       }
+     }
+
+     if(username){
+       setUser.username = username
+     }
+     if(first_name){
+       setUser.first_name = first_name
+     }
+     if(last_name){
+       setUser.last_name = last_name
+     }
+     if(email){
+       setUser.email = email
+     }
+     
+     let updatedUser = db.get("users").find({id: req.user_id}).assign({...setUser}).value()
+     if(updatedUser){
+      return response(res, 201, {
+        user: {
+          ...updatedUser,
+          password: newPassword
+        },
+        message: "Operation completed"
+      })
+     }
+   }
+ }
  
  export const uploadProfilePhoto = (req, res, next)=>{
   
@@ -246,4 +292,24 @@ export const getUser = (req: Request, res: Response)=>{
        })
      }
    })
+}
+
+
+
+export const getAuthPassword = (req, res)=>{
+  
+  if(req.body.user_id !== req.query.user_id){
+    return  response(res, 409, { message: "You are unauthorized" })
+  }
+  
+  try{
+    let user = db.get('users').find({ id: req.body.user_id }).value()
+    
+    // response(res, 201, other)
+    response(res, 200, "DF")
+    
+  } catch (ex){
+    errorConsole(ex)
+    return response(res, 500, ex.message)
+  }
 }
