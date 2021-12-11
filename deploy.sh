@@ -19,12 +19,10 @@ git commit -m 'deploy'
 # if you are deploying to https://<USERNAME>.github.io
 # git push -f git@github.com:<USERNAME>/<USERNAME>.github.io.git master
 
-
 # if you are deploying to https://<USERNAME>.github.io/<REPO>
 
 # if deploy via repo
 #git push -f https://github.com/rasel-code-dev/my-blog-server.git master:deploy
 
-
- heroku local
+git push -f heroku
 
