@@ -4,7 +4,7 @@
 set -e
 
 # build
-#npm run build
+npm run build
 
 # navigate into the build output directory
 #cd dist
@@ -19,7 +19,12 @@ git commit -m 'deploy'
 # if you are deploying to https://<USERNAME>.github.io
 # git push -f git@github.com:<USERNAME>/<USERNAME>.github.io.git master
 
-# if you are deploying to https://<USERNAME>.github.io/<REPO>
-git push -f https://github.com/rasel-code-dev/my-blog-server.git master:deploy
 
+# if you are deploying to https://<USERNAME>.github.io/<REPO>
+
+# if deploy via repo
+#git push -f https://github.com/rasel-code-dev/my-blog-server.git master:deploy
+
+
+ heroku local
 
