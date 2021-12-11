@@ -1,7 +1,7 @@
 node_modules
 .idea
 .env
-dist/src/database
-dist/src/markdown
-src/database
-src/markdown
+dist/src/database/*
+dist/src/markdown/*
+src/database/*
+src/markdown/*
