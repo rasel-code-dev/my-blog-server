@@ -2,8 +2,8 @@ import express  from "express"
 import cors from "cors";
 import path from "path"
 import bodyParser from "body-parser"
-// var session = require('express-session')
-let isDev = process.env.NodeENV === "development"
+var session = require('express-session')
+// let isDev = process.env.NodeENV === "development"
 
 let c = ['debug', 'log', 'warn', 'error']
 c.forEach((methodName) => {
@@ -38,7 +38,7 @@ const app = express()
 
 
 
-const whitelist = ["http://localhost:5500", "https://rasel-code-dev.github.io"]
+const whitelist = ["http://localhost:5500", "http://localhost:5000", "https://rasel-code-dev.github.io"]
 const corsOptions = {
     credentials: true,
     origin: function (origin, callback) {
@@ -56,12 +56,12 @@ const corsOptions = {
 app.use(cors(corsOptions))
 
 
-// app.use(session({
-//     secret: "process.env.SECRET",
-//     resave: false,
-//     saveUninitialized: true,
-//     cookie: {  httpOnly: true, secure: true, maxAge: 1000 * 60 * 60 * 48, sameSite: 'none' }
-//   }))
+app.use(session({
+    secret: "process.env.SECRET",
+    resave: false,
+    saveUninitialized: true,
+    cookie: {  httpOnly: true, secure: true, maxAge: 1000 * 60 * 60 * 48, sameSite: 'none' }
+  }))
 
 
 // app.use(function(req, res, next) {
