@@ -112,12 +112,12 @@ export const getUser = (req: Request, res: Response)=>{
    } else{
      res.cookie('browser_uuid', randomID, {
          maxAge: ((1000 * 3600) * 24) * 30, // 30days
-         httpOnly: false,
-        //  domain: 'https://rasel-code-dev.github.io',
+         httpOnly: true,
+         domain: 'rsl-blog-server-1.herokuapp.com',
       
          sameSite: 'none',
          // Forces to use https in production
-         secure: process.env.NODE_ENV !== 'development'
+         secure: true
        });
        
      
