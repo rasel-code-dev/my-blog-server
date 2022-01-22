@@ -16,3 +16,4 @@ previews/*
 client/*
 # Local Netlify folder
 .netlify
+dump.rdb
