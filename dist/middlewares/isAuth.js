@@ -1,0 +1,21 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const { parseToken } = require("../jwt");
+const response = require("../response");
+function isAuth(req, res, next) {
+    let token = req.headers["token"];
+    if (!token) {
+        req.user_id = null;
+        return response(res, 404, "please login first");
+    }
+    parseToken(token).then(u => {
+        req.user_id = u.id;
+        req.user_email = u.email;
+        next();
+    }).catch(err => {
+        req.user_id = null;
+        response(res, 404, "please login first");
+    });
+}
+exports.default = isAuth;
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiaXNBdXRoLmpzIiwic291cmNlUm9vdCI6Ii4vc3JjLyIsInNvdXJjZXMiOlsibWlkZGxld2FyZXMvaXNBdXRoLnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7O0FBQUEsTUFBTSxFQUFFLFVBQVUsRUFBQyxHQUFJLE9BQU8sQ0FBQyxRQUFRLENBQUMsQ0FBQTtBQUN4QyxNQUFNLFFBQVEsR0FBSSxPQUFPLENBQUMsYUFBYSxDQUFDLENBQUE7QUFFeEMsU0FBUyxNQUFNLENBQUMsR0FBRyxFQUFFLEdBQUcsRUFBRSxJQUFJO0lBQzVCLElBQUksS0FBSyxHQUFHLEdBQUcsQ0FBQyxPQUFPLENBQUMsT0FBTyxDQUFDLENBQUE7SUFDaEMsSUFBRyxDQUFDLEtBQUssRUFBQztRQUNSLEdBQUcsQ0FBQyxPQUFPLEdBQUcsSUFBSSxDQUFBO1FBQ2xCLE9BQU8sUUFBUSxDQUFDLEdBQUcsRUFBRSxHQUFHLEVBQUUsb0JBQW9CLENBQUMsQ0FBQTtLQUNoRDtJQUNELFVBQVUsQ0FBQyxLQUFLLENBQUMsQ0FBQyxJQUFJLENBQUMsQ0FBQyxDQUFBLEVBQUU7UUFDeEIsR0FBRyxDQUFDLE9BQU8sR0FBRyxDQUFDLENBQUMsRUFBRSxDQUFBO1FBQ2xCLEdBQUcsQ0FBQyxVQUFVLEdBQUcsQ0FBQyxDQUFDLEtBQUssQ0FBQTtRQUN4QixJQUFJLEVBQUUsQ0FBQTtJQUNSLENBQUMsQ0FBQyxDQUFDLEtBQUssQ0FBQyxHQUFHLENBQUEsRUFBRTtRQUNaLEdBQUcsQ0FBQyxPQUFPLEdBQUcsSUFBSSxDQUFBO1FBQ2xCLFFBQVEsQ0FBQyxHQUFHLEVBQUUsR0FBRyxFQUFFLG9CQUFvQixDQUFDLENBQUE7SUFDMUMsQ0FBQyxDQUFDLENBQUE7QUFDSixDQUFDO0FBRUQsa0JBQWdCLE1BQU0sQ0FBQSJ9

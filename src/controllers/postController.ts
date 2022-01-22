@@ -10,84 +10,124 @@ import slugify from "../utilities/slugify";
 import errorConsole from "../logger/errorConsole";
 import db from "../database/db";
 import * as fs from "fs";
+import {redisConnect} from "../database";
+import {getHashData, redisHasToArr} from "../utilities/redisUtils";
 
 const shortid = require("shortid")
 
 
 
-export const getPosts = (req, res, next) =>{
+export const getPosts = async (req, res, next) =>{
 
   const  { author_id } = req.query
 
-  let posts = []
-  if(author_id){
-    posts =  db.get('posts').filter({author_id: author_id}).value()
-  } else {
-    posts = db.get('posts').value()
-  }
-
-  let users = db.get('users').value()
-  let posts_with_user = []
-
-
-  posts && posts.length > 0 && posts.forEach(post=>{
-    let user = users.find(u=>u.id === post.author_id)
-    if(user){
-      posts_with_user.push({
-        ...post,
-        author: {
-          username: user.first_name + " " + user.last_name,
-          avatar: user.avatar
-        }
-      })
-    } else {
-      posts_with_user.push({
-        ...post,
-        author: {}
-      })
-    }
-  })
-  // setTimeout(()=>{
+  let client;
+  try {
   
-  response(res, 200, {posts: posts_with_user})
-  // }, 4000)
+    client = await redisConnect()
+  
+    let posts = []
+    if (author_id) {
+      // posts = db.get('posts').filter({author_id: author_id}).value()
+    } else {
+      posts = await getHashData('posts', client)
+    }
+    
+    let users = await getHashData("users", client)
+    
+    let posts_with_user = []
+    // usersSync(users, client)
+    
+  
+    posts && posts.length > 0 && posts.forEach(post => {
+      let user = users.find(u => u.id === post.author_id)
+      if (user) {
+        posts_with_user.push({
+          ...post,
+          author: {
+            username: user.first_name + " " + user.last_name,
+            avatar: user.avatar
+          }
+        })
+      } else {
+        posts_with_user.push({
+          ...post,
+          author: {}
+        })
+      }
+    })
+    
+    response(res, 200, {posts: posts_with_user})
+    
+  } catch (ex){
+    response(res, 500, ex.message)
+  } finally {
+    client?.quit()
+  }
   
 }
 
-export const getPost = (req, res, next) =>{
+export const getPost = async (req, res, next) =>{
   let { slug, post_id } = req.params
-  let hits = 0
-  let fPost;
-  if(post_id) {
-    fPost = db.get("posts").find({id: post_id}).value()
-  } else {
-    fPost = db.get("posts").find({slug: slug}).value()
-  }
   
-  if (fPost) {
+  let client;
   
-    let postHit = visitorDB.get("postHits").find({post_id: fPost.id}).value()
-    if(postHit){
-      hits = postHit.hits
+  try {
+    
+    client = await redisConnect()
+    
+    let hits = 0
+    let fPost;
+    if(post_id) {
+      let postStr =  await client.HGET("posts", post_id)
+      if(postStr){
+        fPost = JSON.parse(postStr)
+      }
+    } else {
+      // fPost = db.get("posts").find({slug: slug}).value()
+    }
+    
+    if (fPost) {
+    
+      let postHit = await client.HGET("post_hits", fPost.id)
+      
+      // sync(postHit, "post_hits", "post_id", client)
+      
+      if(postHit){
+        hits = postHit
+      }
+    
+      let comments = await getHashData("comments", client)
+      let postComment = comments.filter(c=>c.post_id == fPost.id)
+      
+      // sync(comments, "comments", "id", client)
+      
+      
+      // let comments = db.get("comments").filter({post_id: fPost.id}).value()
+      let users = await getHashData("users", client)
+      let user = users.find(u=>u.id === fPost.author_id)
+      
+      let { password, role, ...other } = user
+      
+        response(res, 200, {
+          post: {
+            ...fPost,
+            hits,
+            author: other,
+            comments: postComment
+          }
+        })
+   
+    } else {
+      response(res, 404, "post not found")
     }
   
-    let comments = db.get("comments").filter({post_id: fPost.id}).value()
-  
-    let { password, role, ...other } = db.get("users").find({id: fPost.author_id}).value()
-    
-    
-      response(res, 200, {
-        post: {
-          ...fPost,
-          hits,
-          author: other,
-          comments: comments
-        }
-      })
- 
-  } else {
-    response(res, 404, "post not found")
-  }
+  } catch (ex){
+    response(res, 500, ex.message)
+  } finally {
+    client?.quit()
+}
+
 }
 
 
@@ -155,16 +195,26 @@ export const addPost = async (req, res, next) =>{
         
         let r = await writeFile(path.resolve(`src/markdown/${slug}.md`), mdContent)
         console.log("markdown file created...", `markdown/${slug}.md`)
-
-        let post = db.get("posts").find({slug: slug}).value()
-        if(!post) {
-          let newPost = db.get('posts')
-            .push({id, author_id, slug, title, cover, path: `markdown/${slug}.md`, tags: JSON.parse(tags), created_at: new Date()})
-            .write()
-
-          response(res, 200, {post: newPost})
-        } else {
-          response(res, 400, "post already created..")
+        
+        let client;
+        
+        try{
+          
+          client = await redisConnect()
+          let post = db.get("posts").find({slug: slug}).value()
+          if(!post) {
+            let newPost = db.get('posts')
+              .push({id, author_id, slug, title, cover, path: `markdown/${slug}.md`, tags: JSON.parse(tags), created_at: new Date()})
+              .write()
+    
+            response(res, 200, {post: newPost})
+          } else {
+            response(res, 400, "post already created..")
+          }
+        } catch (ex) {
+        
+        } finally {
+          client?.quit()
         }
         
       } catch (ex){
@@ -216,7 +266,6 @@ export const updatePost = async (req, res, next) =>{
     return response(res, 409, "Unauthorized")
   }
   
- 
   
   let { id, title, cover, mdContent, tags } = req.body
 
@@ -255,32 +304,48 @@ export const updatePost = async (req, res, next) =>{
 }
 
 
+
+/** Implement Later... */
+function increasePostVisitorCount(){
+  // let post = visitorDB.get("postHits").find({post_id: fPost.id}).value()
+  // if(post){
+  //
+  //   // if(post.hits){
+  //   //   post.hits = Number(post.hits) + 1
+  //   // } else {
+  //   //   post.hits = 1
+  //   // }
+  //   // let newVi = visitorDB.get("postHits").assign(post).write()
+  //
+  // } else {
+  //
+  //   // let newVi = visitorDB.get("postHits").push({
+  //   //   post_id: fPost.id,
+  //   //   hits: 1
+  //   // }).write()
+  //
+  // }
+}
+
 export const getPostContent = async (req, res, next) =>{
   let { post_id } = req.params
  
-  let fPost = db.get("posts").find({id: post_id}).value()
+  let client;
+
   
   try {
-    if(fPost) {
-      
-      let p = MDFilepath(fPost.path)
-      let content = await readFile(p, "utf-8")
+      client = await redisConnect()
+      let fPost = await client.HGET("posts", post_id)
+      if(fPost) {
+        let post = JSON.parse(fPost)
+       
+        
+        let p = MDFilepath(post.path)
+        let content = await readFile(p, "utf-8")
       
       if (content) {
-        let post = visitorDB.get("postHits").find({post_id: fPost.id}).value()
-        if(post){
-          if(post.hits){
-            post.hits = Number(post.hits) + 1
-          } else {
-            post.hits = 1
-          }
-          let newVi = visitorDB.get("postHits").assign(post).write()
-        } else {
-          let newVi = visitorDB.get("postHits").push({
-            post_id: fPost.id,
-            hits: 1
-          }).write()
-        }
+        
+        increasePostVisitorCount()
     
         marked.setOptions({
           highlight: function(code, lang) {
@@ -307,6 +372,9 @@ export const getPostContent = async (req, res, next) =>{
   } catch (ex){
     console.log(ex.message)
     response(res, 200, {mdContent: ""})
+  }
+  finally {
+    client?.quit()
   }
 }
 

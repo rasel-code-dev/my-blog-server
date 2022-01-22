@@ -14,3 +14,5 @@ node_modules
 
 previews/*
 client/*
+# Local Netlify folder
+.netlify

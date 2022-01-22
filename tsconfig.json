@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
-//    "module": "ESNext",
+    //    "module": "ESNext",
     "strict": false,
     "module": "commonjs",
     "target": "es6",
-    "rootDir": "./",
+    "rootDir": "src",
     "allowJs": true,
     "esModuleInterop": true,
     "sourceRoot": "./src",
@@ -14,7 +14,6 @@
     "lib": ["es2021"]
   },
   "include": ["src/"],
-  "hooks": [ "copy-files" ], /* <-- NEW OPTION HERE */
   "ts-node": {
     "compilerOptions": {
       "module": "CommonJS"
