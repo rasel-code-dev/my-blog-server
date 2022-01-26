@@ -1,5 +1,5 @@
 
-import postRoutes from "./postRoutes"
+import  postRoutes from "./postRoutes"
 import authRoutes from "./authRoutes";
 import filesRoutes from "./filesRoutes";
 import appAdminRoutes from "./appAdminRoutes";

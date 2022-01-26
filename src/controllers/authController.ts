@@ -13,6 +13,7 @@ import replaceOriginalFilename from "../utilities/replaceOriginalFilename";
 import {createHash, hashCompare} from "../hash";
 import {getHashData} from "../utilities/redisUtils";
 import {redisConnect} from "../database";
+import sendMail from "../utilities/sendMail";
 
 
 export const createNewUser = async (req, res, next)=>{
@@ -62,28 +63,47 @@ export const createNewUser = async (req, res, next)=>{
 export const loginUser = async (req, res)=>{
   let client;
   try {
-    client = await redisConnect()
-    const { email, password } = req.body
-    let users = await getHashData("users", client)
-    let user = users.find(u=>u.email === email )
-    if(user){
-      let match = await hashCompare(password, user.password)
-      if(!match)  return  res.status(404).json({message: "Password not match"})
-      
-      let token = await createToken(user.id, user.email)
-      let {password : s, ...other} = user
-      res.json({token: token, ...other})
-    } else{
-      res.status(404).json({message: "This email not yet register."})
+    let { email, password } = req.body
+    if(!(email && password)) {
+      return response(res, 409, "Missing credential")
     }
+    let {token, user} = await loginUserHandler(email, password)
+    response(res, 201, {token: token, ...user})
     
   } catch (ex){
     errorConsole(ex)
+    response(res, 500, ex.message ? ex.message : "Internal Error")
   } finally {
     client?.quit()
   }
 }
 
+function loginUserHandler(email: string, password: string){
+  return new Promise<{token: string, user: object}>(async (s, e)=>{
+    let client;
+    try {
+      client = await redisConnect()
+      let users = await getHashData("users", client)
+      let user = users.find(u=>u.email === email )
+      if(user){
+        let match = await hashCompare(password, user.password)
+        if(!match)  return e(new Error("Password not match"))
+      
+        let token = await createToken(user.id, user.email)
+        let {password : sss, ...other} = user
+        s({user: other, token})
+      } else{
+        e(new Error("login fail"))
+      }
+    
+    } catch (ex){
+      errorConsole(ex)
+      e(ex)
+    } finally {
+      client?.quit()
+    }
+  })
+}
 
 export const loginViaToken = async (req, res)=>{
   let client;
@@ -97,7 +117,7 @@ export const loginViaToken = async (req, res)=>{
     let user = users.find(u=>u.email === email)
     if(user){
     let {password, ...other} = user
-    response(res, 201, other)
+    response(res, 201, {...other})
   } else {
       response(res, 404, {message: "User not found"})
     }
@@ -284,7 +304,7 @@ async function setDayVisitor(client, ID){
          ...user,
          ...setUser
        }))
-       console.log(await updatedUser)
+       
        if (updatedUser) {
          return response(res, 201, {
            user: {
@@ -313,34 +333,30 @@ async function setDayVisitor(client, ID){
      }
   
      let {newPath, name} = await replaceOriginalFilename(files, "avatar")
-      uploadImage(newPath).then(image => {
-        (async function (){
-          let client;
-          try{
-            client = await redisConnect()
-            if (image.secure_url) {
-              let userStr = await  client.HGET("users", req.user_id)
-              let user = JSON.parse(userStr)
-              await client.HSET("users", user.id, JSON.stringify({...user, avatar: image.secure_url}))
-              if (user) {
-                fs.rm(newPath, () => {})
-                res.json({message: "profile photo has been changed", avatar: image.secure_url})
-              }
+     let client;
+     try{
+       client = await redisConnect()
+       let cloudImage = await uploadImage(newPath)
+       if (cloudImage.secure_url) {
+         let userStr = await  client.HGET("users", req.user_id)
+         let user = JSON.parse(userStr)
+         await client.HSET("users", user.id, JSON.stringify({...user, avatar: cloudImage.secure_url}))
+         if (user) {
+           fs.rm(newPath, () => {})
+           response(res, 201,{message: "profile photo has been changed", avatar: cloudImage.secure_url})
+         }
       
-            } else {
-              fs.rm(newPath, () => {})
-              res.json({message: "avatar photo upload fail", avatar: ""})
-            }
+       } else {
+         fs.rm(newPath, () => {})
+         response(res, 500, "avatar photo upload fail")
+       }
     
-          } catch (ex){
-            res.json({message: "avatar photo upload fail", avatar: ""})
-            
-          } finally {
-            await client?.quit()
-          }
-          
-        }())
-      })
+     } catch (ex){
+       response(res, 500, "avatar photo upload fail")
+    
+     } finally {
+       await client?.quit()
+     }
    })
    
 }
@@ -363,33 +379,36 @@ async function setDayVisitor(client, ID){
        fs.rename(files.cover.filepath, newPath, async (err) => {
     
          if (!err) {
-           uploadImage(newPath).then(image => {
-             (async function (){
-               let client;
-               try{
-                 client = await redisConnect()
-                 if (image.secure_url) {
+           let client;
+         
+           try {
+             let cloudImage = await uploadImage(newPath)
+             client = await redisConnect()
+             
+             if (cloudImage.secure_url) {
+               let userStr = await  client.HGET("users", req.user_id)
                
-                   let userStr = await  client.HGET("users", req.user_id)
-                   let user = JSON.parse(userStr)
-                   await client.HSET("users", user.user_id, JSON.stringify({...user, cover: image.secure_url}))
-                   
-                   if (user) {
-                     fs.rm(newPath, () => {})
-                     res.json({message: "cover photo has been changed", cover: image.secure_url})
-                   }
-    
-                 } else {
-                    fs.rm(newPath, () => {})
-                    res.json({message: "cover photo upload fail", avatar: ""})
-                 }
-               } catch (err) {
-                  res.json({message: "cover photo upload fail", avatar: ""})
-               } finally {
-                 await client?.quit()
+               let user = JSON.parse(userStr)
+               await client.HSET("users", user.id, JSON.stringify({...user, cover: cloudImage.secure_url}))
+
+               if (user) {
+                 fs.rm(newPath, () => {})
+                 response(res, 201, {message: "cover photo has been changed", cover: cloudImage.secure_url})
                }
-             }())
-           })
+
+             } else {
+               fs.rm(newPath, () => {})
+               response(res,500, "cover photo upload fail")
+  
+             }
+           
+           } catch (err) {
+             errorConsole(err)
+             response(res,500, "cover  photo upload fail")
+           } finally {
+             await client?.quit()
+           }
+             
          }
        })
      }
@@ -415,14 +434,14 @@ async function setDayVisitor(client, ID){
            uploadImage(newPath).then(image => {
              if (image.secure_url) {
                 fs.rm(newPath, () => {  })
-                res.json({message: "markdown image upload complete", path: image.secure_url})
+                response(res, 201, {message: "markdown image upload complete", path: image.secure_url})
              } else {
                fs.rm(newPath, () => {  })
-               res.json({message: "markdown image upload fail", path: ""})
+               response(res, 500,"markdown image upload fail")
              }
            })
              .catch(ex=>{
-               res.status(500).json({message: "markdown image upload fail", path: ""})
+               response(res, 500,"markdown image upload fail")
              })
          }
        })
@@ -447,6 +466,110 @@ async function setDayVisitor(client, ID){
   } catch (ex){
     errorConsole(ex)
     return response(res, 500, ex.message)
+  } finally {
+    client?.quit()
+  }
+}
+
+
+export const sendPasswordResetMail = async (req, res)=>{
+  let client;
+  try{
+    client = await redisConnect()
+    // send a link and a secret code with expire date...
+    let users = await getHashData("users", client)
+    
+    const { to } = req.body
+    let findIndex = users.findIndex(u=>u.email === to)
+    if(findIndex === -1){
+      response(res, 404, "This email not registered yet")
+      return
+    }
+    let token = createToken(users[findIndex].id, users[findIndex].email, '30min')
+    let info: any = await sendMail({
+      to: to,
+      from: process.env.ADMIN_EMAIL,
+      subject: "Change Password",
+      html: `
+        <div>
+          <h1>Change Password Blogger application</h1>
+            <a href="${process.env.FRONTEND}/auth/login/new-password/${token}">click to set new password</a>
+          </div>
+      `
+    })
+
+    if(info.messageId){
+      response(res, 201, {message: "Email has been send"})
+    } else {
+      response(res, 500, "internal error")
+    }
+    
+  } catch (ex){
+    errorConsole(ex)
+    if(ex.message === "jwt expired"){
+      response(res, 409, "session timeout")
+    } else {
+      response(res, 500, "Network error")
+    }
+  } finally {
+    await client?.quit()
+  }
+}
+
+
+export const checkPasswordResetSessionTimeout = async (req, res)=> {
+  let { token } = req.body
+  
+  try {
+    let s = await parseToken(token)
+    response(res, 200, "")
+  } catch (ex){
+    errorConsole(ex)
+    if(ex.message === "jwt expired"){
+      response(res, 500, "password reset session expired")
+    }
+  }
+}
+
+
+
+export const changePassword = async (req, res)=>{
+  let client;
+  try{
+    const { token, password }  = req.body
+    client = await redisConnect()
+    // send a link and a secret code with expire date....
+    // 1st check token validity.
+    // 2. if token valid then reset password
+    
+    let { email, id } =  await parseToken(token)
+    
+    let userStr = await client.HGET("users", id)
+    if(userStr){
+      let user = JSON.parse(userStr)
+      let {hash, err} = await createHash(password)
+      if(!hash){
+        errorConsole(err)
+        response(res, 500, "Password reset fail. Try again")
+      }
+      user.password = hash
+      let isPassChanged = await client.HSET("users", user.id, JSON.stringify(user))
+      if(isPassChanged || isPassChanged === 0) {
+        let {password, ...other} = user
+        response(res, 201, {token: token, ...other})
+      } else {
+        response(res, 500, "Password reset fail. Try again")
+      }
+
+    } else {
+      response(res, 500, "Account not found")
+    }
+    
+    
+  } catch (ex){
+    errorConsole(ex)
+    response(res, 500, ex.message ? ex.message : "Internal Error")
+    
   } finally {
     client?.quit()
   }

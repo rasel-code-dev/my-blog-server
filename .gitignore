@@ -1,19 +1,10 @@
 node_modules
 .idea
 .env
-
-# dist/src/database/db.json
-# dist/src/database/visitor.db.json
-# dist/src/markdown/*
-# dist/src/backup/*
-
-# src/database/db.json
-# src/database/visitor.db.json
-# src/markdown/*
-# src/backup/*
-
 previews/*
 client/*
 # Local Netlify folder
 .netlify
 dump.rdb
+src/database/cloudSync.js
+dist/database/cloudSync.js

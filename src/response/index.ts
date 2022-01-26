@@ -1,12 +1,12 @@
 
 
 
-function response(res, status: number = 200, message?: string | object){
+function response(res, status: number = 200, data?: string | object){
   let resp: any = {}
-  if(typeof message === "string"){
-    resp = { message: message }
+  if(typeof data === "string"){
+    resp = { message: data }
   } else {
-    resp = message
+    resp = data
   }
   res.status(status).json(resp)
 }

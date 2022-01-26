@@ -1,6 +1,6 @@
 function errorConsole(ex){
   if(process.env.NODE_ENV === "development"){
-    console.error(ex)
+    console.error(ex.message)
   }
 }
 

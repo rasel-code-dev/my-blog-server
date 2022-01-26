@@ -14,13 +14,13 @@
     <div class="login-modal__wrapper">
     <div class="login-modal card">
 
-        <form action="/admin/login" method="post" enctype="application/x-www-form-urlencoded">
+        <form action="/.netlify/functions/server/admin/login" method="post" enctype="application/x-www-form-urlencoded">
 
             <h4><%= message %></h4>
 
         <div class="form-group">
-            <label for="">admin secret key</label>
-            <input type="text" name="secret">
+            <label for="">Admin Secret Key</label>
+            <input type="password" name="secret" >
         </div>
 
             <button class="btn btn-primary ">Admin Login</button>

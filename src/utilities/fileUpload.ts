@@ -1,7 +1,7 @@
 import formidable from 'formidable';
 import { copyFile, mkdir, rm, stat } from 'fs/promises';
 import fs from "fs"
-
+import {Request, Response} from "express"
 // "formidable": "^2.0.1",
 
 function fileUpload(req: Request, filePath: string, fieldName: string, callback: (err: any, obj: ResultType)=>any){

@@ -1,29 +1,80 @@
 import response from "../response";
-import {createToken, parseToken} from "../jwt";
-import errorConsole from "../logger/errorConsole";
-const shortid = require("shortid")
-const bcryptjs  = require("bcryptjs")
-import express, { Request, Response } from 'express';
-import visitorDB from "../database/visitorDB";
-import getAppCookies from "../utilities/getAppCookies";
-import createZip from "../utilities/makeZip";
-import fs from "fs";
+import fs, {createReadStream, WriteStream} from "fs";
 import formidable from 'formidable';
-import {uploadImage} from "../cloudinary";
-
-import db from "../database/db";
 import path from "path";
 import {DBDirpath, MDDirpath} from "../utilities/MDPath";
 import {cp, readdir, readFile, rm, stat, writeFile} from "fs/promises";
 import replaceOriginalFilename from "../utilities/replaceOriginalFilename";
-
-
+import errorConsole from "../logger/errorConsole";
 
 export const makeDataBackup  = async (req, res)=>{
-  createZip().then(r=>{
-    const stream = fs.createReadStream( path.resolve('src/backup/files.zip'))
-    stream.pipe(res)
-  })
+  function createBackup() {
+    return new Promise(async (s, e)=> {
+  
+      var archiver = require('archiver');
+  
+      const archive = archiver('zip', {
+        zlib: {level: 9} // Sets the compression level.
+      });
+      
+// good practice to catch warnings (ie stat failures and other non-blocking errors)
+      archive.on('warning', function (err) {
+        if (err.code === 'ENOENT') {
+          // log warning
+        } else {
+          errorConsole(err)
+          // response(res, 500, err.message)
+          res.end()
+          // throw error
+          throw err;
+        }
+      });
+
+// good practice to catch this error explicitly
+      archive.on('error', function (err) {
+        errorConsole(err)
+        res.end()
+        // response(res, 500, err.message)
+        // throw err;
+      });
+  
+      // pipe archive data to the file
+      archive.pipe(res);
+  
+      // append a file from stream
+      try{
+        let files = await readdir(path.resolve("src/markdown"))
+        let dir = path.resolve("src/markdown")
+        files.forEach((fileName, i) => {
+          (async function () {
+            try{
+              let fileStats = await stat(path.join(dir, fileName))
+              if (fileStats.isFile()) {
+                let stream = createReadStream(path.join(dir, fileName))
+                archive.append(stream, {name: fileName});
+              }
+              if ((i + 1) >= files.length) {
+                archive.finalize();
+              }
+            } catch (ex){
+              errorConsole(ex)
+             // response(res, 500, ex.message)
+              res.end()
+              e(new Error(ex.message))
+            }
+          }())
+        })
+      } catch (ex){
+        errorConsole(ex)
+        res.end()
+        // response(res, 500, ex.message)
+        e(new Error(ex.message))
+      }
+      
+      
+    })
+  }
+  await createBackup()
 }
 
 
@@ -89,44 +140,32 @@ export const saveFileContent = async (req, res)=>{
 export const getDBFileList = async () =>{
   return new Promise<{markdownFiles?: any[], databaseFiles?: any[] }>(async (resolve, reject)=>{
     try{
-        let mdFiles = await readdir(MDDirpath())
-        let dbFiles = await readdir(DBDirpath())
+      let mdPath = path.resolve("src/markdown") // from project root
+        let mdFiles = await readdir(mdPath)
       
         let mdFilesD = []
       
         for (const file of mdFiles) {
-          let a = await stat(MDDirpath() + "/" +  file)
+          let a = await stat(path.join(mdPath + "/" +  file))
           mdFilesD.push({
             dir: a.isDirectory(),
             modifyTime: a.mtime,
             name: file,
-            path: MDDirpath() + "/" +  file,
+            path: path.join(mdPath + "/" +  file),
             size: a.size
           })
         }
       
-        let dbFilesD = []
-        for (const file of dbFiles) {
-          let a = await stat(DBDirpath() + "/" +  file)
-          dbFilesD.push({
-            dir: a.isDirectory(),
-            modifyTime: a.mtime,
-            name: file,
-            path: DBDirpath() + "/" +  file,
-            size: a.size
-          })
-        }
+        
         
         resolve({
-          markdownFiles: mdFilesD ? mdFilesD : [],
-          databaseFiles: dbFilesD ? dbFilesD: []
+          markdownFiles: mdFilesD ? mdFilesD : []
         })
       
     } catch(ex){
       console.log(ex.message)
       resolve({
-        markdownFiles: [],
-        databaseFiles:  []
+        markdownFiles: []
       })
     }
     
@@ -155,7 +194,7 @@ export const  uploadFile = async (req, res)=>{
     try {
       if(fields.dirType === "markdown"){
         let {newPath, name} = await replaceOriginalFilename(files, "markdown")
-        let uploadedPath = MDDirpath()+"/"+name
+        let uploadedPath = path.resolve("src/markdown/" +  name)
         await cp(newPath, uploadedPath,{force: true})
   
         response(res, 201, {
@@ -163,15 +202,6 @@ export const  uploadFile = async (req, res)=>{
           uploadedPath: uploadedPath
         })
   
-      } else if(fields.dirType === "database"){
-        let {newPath, name} = await replaceOriginalFilename(files, "database")
-        let uploadedPath = DBDirpath()+"/"+name
-        await cp(newPath, uploadedPath, {force: true})
-  
-        response(res, 201, {
-          message: "Database File upload Success",
-          uploadedPath: uploadedPath
-        })
       }
       
       
