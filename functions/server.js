@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const cors = require("cors");
 const path = require("path");
 const ejs = require('ejs');
+const {readdir} = require("fs/promises");
 // const {readdir} = require("fs/promises");
 
 require('dotenv').config()
@@ -59,14 +60,14 @@ if(process.env.NODE_ENV === "development"){
 }
 
 app.get("/", async (req, res)=>{
-  // try {
-  //   let d = await readdir(path.join(__dirname, "..", "functions"))
-  //   console.log(d)
-  //   res.send({d: d})
-  //
-  // } catch (ex){
-  //   res.send(ex.message)
-  // }
+  try {
+    let d = await readdir(path.join(__dirname, "..", "functions"))
+    console.log(d)
+    res.send({d: d})
+
+  } catch (ex){
+    res.send(ex.message)
+  }
 })
 
 app.use(bodyParser.json());
