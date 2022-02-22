@@ -12,54 +12,60 @@ import {uploadImage} from "../cloudinary";
 import replaceOriginalFilename from "../utilities/replaceOriginalFilename";
 import {createHash, hashCompare} from "../hash";
 import {getHashData} from "../utilities/redisUtils";
-import {redisConnect} from "../database";
+import {mongoConnect, redisConnect} from "../database";
 import sendMail from "../utilities/sendMail";
+import User from "../models/User";
+import {ObjectId} from "mongodb";
 
 
-export const createNewUser = async (req, res, next)=>{
+export const createNewUser = async (req, res, next)=> {
   let client;
-  try {
-    client = await redisConnect()
-    let date = new Date()
-    let {first_name, last_name, email, password } = req.body
-    let users = await getHashData("users", client)
-    let user = users.find(u=>u.email === email)
-    if(user) return res.status(409).json({message: "User already registered"})
-
-    const {err, hash} = await createHash(password)
-    let newUser = {
-      id: shortid.generate(),
-      first_name,
-      last_name,
-      email,
-      password: hash,
-      avatar: "",
-      username: first_name + " " + last_name,
-      created_at: date,
-      updated_at: date
-    }
-    let n = await client.HSET("users", newUser.id, JSON.stringify(newUser))
-    if(n) {
-      let token = await createToken(newUser.id, newUser.email)
   
-      response(res, 201, {
-        token: token,
-        ...newUser
-      })
-    } else {
-      response(res, 500, "Please Try Again")
-    }
+  try {
+    let {first_name, last_name, email, password } = req.body
+    // let {c: User, client, db } = await mongoConnect("users")
     
+    const {err, hash} = await createHash(password)
+    
+    let user = await User.findOne({email: email}, {})
+    if (user) {
+      response(res, 409, {message: "User Already exists"})
+      return
+    } else {
+      let newUser: any = new User({
+        created_at: new Date(),
+        updated_at: new Date(),
+        avatar: "",
+        first_name,
+        last_name,
+        email,
+        password: hash
+      })
+      
+      newUser = await newUser.save()
+      if(newUser){
+       let token = await createToken(newUser._id, newUser.email)
+          response(res, 201, {
+            token: token,
+            ...newUser
+          })
+      } else {
+          response(res, 500, "Please Try Again")
+      }
+      
+    }
     
   } catch (ex){
     errorConsole(ex)
-    response(res, 500, "Please Try Again")
-    
+    response(res, 500, {
+      message: "Please Try Again",
+      m:ex.message
+    })
+  
   } finally {
     client?.quit()
   }
 }
-
 export const loginUser = async (req, res)=>{
   let client;
   try {
@@ -74,7 +80,7 @@ export const loginUser = async (req, res)=>{
     errorConsole(ex)
     response(res, 500, ex.message ? ex.message : "Internal Error")
   } finally {
-    client?.quit()
+    client?.close()
   }
 }
 
@@ -82,14 +88,14 @@ function loginUserHandler(email: string, password: string){
   return new Promise<{token: string, user: object}>(async (s, e)=>{
     let client;
     try {
-      client = await redisConnect()
-      let users = await getHashData("users", client)
-      let user = users.find(u=>u.email === email )
+      let {c: UserCollection, client: cc } = await mongoConnect("users")
+      client = cc
+      let user: any = await UserCollection.findOne({email: email}, {})
       if(user){
         let match = await hashCompare(password, user.password)
         if(!match)  return e(new Error("Password not match"))
       
-        let token = await createToken(user.id, user.email)
+        let token = await createToken(user._id, user.email)
         let {password : sss, ...other} = user
         s({user: other, token})
       } else{
@@ -100,7 +106,7 @@ function loginUserHandler(email: string, password: string){
       errorConsole(ex)
       e(ex)
     } finally {
-      client?.quit()
+      client?.close()
     }
   })
 }
@@ -108,13 +114,12 @@ function loginUserHandler(email: string, password: string){
 export const loginViaToken = async (req, res)=>{
   let client;
   try {
-    client = await redisConnect()
+    let {c: UserCollection, client: cc } = await mongoConnect("users")
+    client = cc
     let token = req.headers["token"]
     if(!token) return response(res, 404, "token not found")
     let { id, email } =  await parseToken(token)
-    
-    let users = await getHashData("users", client)
-    let user = users.find(u=>u.email === email)
+    let user: any = await UserCollection.findOne({_id: new ObjectId(id)}, {})
     if(user){
     let {password, ...other} = user
     response(res, 201, {...other})
@@ -125,25 +130,45 @@ export const loginViaToken = async (req, res)=>{
     errorConsole(ex)
     return response(res, 500, ex.message)
   } finally {
-    client?.quit()
+    client?.close()
   }
 }
-
 
 export const getUser = async (req: Request, res: Response)=> {
   const {id} = req.params
   let client;
   try {
-    client = await redisConnect()
-    let userStr = await client.HGET("users", id)
-    let user = JSON.parse(userStr)
+    let {c: UserCollection, client: cc } = await mongoConnect("users")
+    client = cc
+    let user = await UserCollection.findOne({_id: new ObjectId(id)})
     let {password, role, ...o} = user
     response(res, 200, {user: o})
     
   } catch (ex){
   
   } finally {
-    client?.quit()
+    client?.close()
+  }
+}
+
+export const getUserEmail = async (req: Request, res: Response)=> {
+  const { email} = req.params
+  let client;
+  
+  try {
+    let {c: UserCollection, client: cc } = await mongoConnect("users")
+    client = cc
+    let user = await UserCollection.findOne({email: email})
+    if(user) {
+      response(res, 200, {user: { avatar: user.avatar }})
+    } else {
+      response(res, 404, "This email not yet registered")
+    }
+  } catch (ex){
+    errorConsole(ex)
+    response(res, 500, "")
+  } finally {
+    client?.close()
   }
 }
 
@@ -190,7 +215,7 @@ async function setDayVisitor(client, ID){
   
 }
 
- export const cookieAdd = async (req: Request, res: Response)=> {
+export const cookieAdd = async (req: Request, res: Response)=> {
   
    let randomID = Math.ceil(Date.now() / 1000)
    let client;
@@ -257,74 +282,78 @@ async function setDayVisitor(client, ID){
    
    
  }
+
  
- export const updateProfile = async (req, res)=>{
-   let client;
+export const updateProfile = async (req, res)=>{
   
    try {
+     
+     let user: any = User.findOne({_id: new ObjectId(req.user_id)}, {})
+     
+     if(user) {
+       const {username, first_name, about_you, last_name, email, oldPassword, newPassword} = req.body
   
-     client = await redisConnect()
-     let userStr = await client.HGET("users", req.user_id)
-     let user = JSON.parse(userStr)
-     if (user) {
-       const {username, first_name, last_name, email, oldPassword, newPassword} = req.body
-
-       let setUser: {
-         password?: string, username?: string, first_name?: string, last_name?: string, email?: string
-       } = {}
-
-
        if (oldPassword && newPassword) {
          let match = await hashCompare(oldPassword, user.password)
          if (!match) {
            return response(res, 409, {message: "current password doesn't match"})
          }
-
+    
          let {err, hash} = await createHash(newPassword)
-         setUser.password = hash
+         user.password = hash
          if (err) {
            return response(res, 500, {message: err})
          }
        }
-
+  
+       if(about_you){
+         user.description = about_you
+       }
        if (username) {
-         setUser.username = username
+         // user.username = username
        }
        if (first_name) {
-         setUser.first_name = first_name
+         user.first_name = first_name
        }
        if (last_name) {
-         setUser.last_name = last_name
+         user.last_name = last_name
        }
        if (email) {
-         setUser.email = email
+         user.email = email
        }
-
-       let updatedUser = client.HSET("users", req.user_id, JSON.stringify({
-         ...user,
-         ...setUser
-       }))
-       
-       if (updatedUser) {
+  
+       let doc  = await User.update({_id: new ObjectId(req.user_id)},
+         {
+           $set: user
+         }
+       )
+       if(doc) {
          return response(res, 201, {
            user: {
-             ...updatedUser,
+             ...user,
              password: newPassword
            },
            message: "Operation completed"
          })
+       } else {
+         return response(res, 409, {
+           message: "Operation fail"
+         })
        }
      }
+     
    } catch (ex){
-   
+     return response(res, 500, {
+       message: "Operation fail"
+     })
    } finally {
-     await client?.quit()
+   
    }
  }
  
- export const uploadProfilePhoto = (req, res, next)=>{
+export const uploadProfilePhoto = (req, res, next)=>{
   
-   const form = formidable({multiples: true})
+   const form = formidable({multiples: false})
    form.parse(req, async (err, fields, files)=> {
     
      if (err) {
@@ -338,20 +367,21 @@ async function setDayVisitor(client, ID){
        client = await redisConnect()
        let cloudImage = await uploadImage(newPath)
        if (cloudImage.secure_url) {
-         let userStr = await  client.HGET("users", req.user_id)
-         let user = JSON.parse(userStr)
-         await client.HSET("users", user.id, JSON.stringify({...user, avatar: cloudImage.secure_url}))
-         if (user) {
+         let user: any = await  User.findOne({_id: new ObjectId(req.user_id)}, {})
+         let isUpdated = await User.update({_id: user._id}, {$set: {avatar: cloudImage.secure_url}})
+         if(isUpdated){
            fs.rm(newPath, () => {})
            response(res, 201,{message: "profile photo has been changed", avatar: cloudImage.secure_url})
+         } else {
+           response(res, 500, "avatar upload fail")
          }
-      
        } else {
          fs.rm(newPath, () => {})
-         response(res, 500, "avatar photo upload fail")
+         response(res, 500, "avatar upload fail")
        }
     
      } catch (ex){
+       errorConsole(ex)
        response(res, 500, "avatar photo upload fail")
     
      } finally {
@@ -361,14 +391,13 @@ async function setDayVisitor(client, ID){
    
 }
 
-
- export const uploadProfileCoverPhoto = (req, res, next)=>{
+export const uploadProfileCoverPhoto = (req, res, next)=>{
    const form = formidable({multiples: true})
    
    form.parse(req, async (err, fields, files)=> {
   
      if (err) {
-       console.log(err)
+       response(res,500, "cover photo upload fail")
        return
      }
   
@@ -377,36 +406,32 @@ async function setDayVisitor(client, ID){
        let tempDir = files.cover.filepath.replace(files.cover.newFilename, '')
        let newPath = tempDir + files.cover.originalFilename
        fs.rename(files.cover.filepath, newPath, async (err) => {
-    
          if (!err) {
-           let client;
-         
            try {
-             let cloudImage = await uploadImage(newPath)
-             client = await redisConnect()
-             
-             if (cloudImage.secure_url) {
-               let userStr = await  client.HGET("users", req.user_id)
-               
-               let user = JSON.parse(userStr)
-               await client.HSET("users", user.id, JSON.stringify({...user, cover: cloudImage.secure_url}))
-
-               if (user) {
-                 fs.rm(newPath, () => {})
-                 response(res, 201, {message: "cover photo has been changed", cover: cloudImage.secure_url})
+             let user: any = await  User.findOne({_id: new ObjectId(req.user_id)}, {})
+             if(user) {
+               let cloudImage = await uploadImage(newPath)
+               if (cloudImage.secure_url) {
+                 let isUpdated = await User.update({_id: user._id}, {$set: {cover: cloudImage.secure_url}})
+                  if(isUpdated) {
+                    fs.rm(newPath, () => {})
+                    response(res, 201, {message: "cover photo has been changed", cover: cloudImage.secure_url})
+                  } else {
+                    fs.rm(newPath, () => {})
+                    response(res,500, "cover photo upload fail")
+                  }
+                 
                }
-
-             } else {
+             }  else {
                fs.rm(newPath, () => {})
                response(res,500, "cover photo upload fail")
-  
              }
            
            } catch (err) {
              errorConsole(err)
              response(res,500, "cover  photo upload fail")
            } finally {
-             await client?.quit()
+           
            }
              
          }
@@ -415,7 +440,7 @@ async function setDayVisitor(client, ID){
    })
 }
 
- export const uploadMarkdownImage = (req, res, next)=>{
+export const uploadMarkdownImage = (req, res, next)=>{
    const form = formidable({multiples: false})
    
    form.parse(req, async (err, fields, files)=> {
@@ -449,7 +474,7 @@ async function setDayVisitor(client, ID){
    })
 }
 
- export const getAuthPassword = async (req, res)=>{
+export const getAuthPassword = async (req, res)=>{
   
   if(req.body.user_id !== req.query.user_id){
     return  response(res, 409, { message: "You are unauthorized" })
@@ -470,7 +495,6 @@ async function setDayVisitor(client, ID){
     client?.quit()
   }
 }
-
 
 export const sendPasswordResetMail = async (req, res)=>{
   let client;
@@ -516,7 +540,6 @@ export const sendPasswordResetMail = async (req, res)=>{
   }
 }
 
-
 export const checkPasswordResetSessionTimeout = async (req, res)=> {
   let { token } = req.body
   
@@ -530,8 +553,6 @@ export const checkPasswordResetSessionTimeout = async (req, res)=> {
     }
   }
 }
-
-
 
 export const changePassword = async (req, res)=>{
   let client;

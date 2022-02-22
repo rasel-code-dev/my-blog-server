@@ -19,7 +19,7 @@ export const adminLogin  = async (req, res)=>{
       if(files) {
         res.render("pages/admin-homepage", {
           message: "Welcome Mr. Rasel Mahmud",
-          markdown: files.markdownFiles
+          markdown: files
         })
       }
     } else {
@@ -38,11 +38,11 @@ export const uploadDatabaseFile  = async (req, res)=>{
   
 
     if (err) {
-      let files =  await getDBFileList()
+      let files : any =  await getDBFileList()
       if(files) {
         res.render("pages/admin-homepage", {
           message: "Welcome Mr. Rasel Mahmud",
-          markdown: files.markdownFiles
+          markdown: files
         })
       }
     }
@@ -59,8 +59,7 @@ export const uploadDatabaseFile  = async (req, res)=>{
         if(dataFiles) {
           res.render("pages/admin-homepage", {
             message: "Welcome Mr. Rasel Mahmud",
-            database: dataFiles.databaseFiles,
-            markdown: dataFiles.markdownFiles
+            markdown: dataFiles
           })
         }
         // response(res, 201, {
@@ -78,7 +77,7 @@ export const uploadDatabaseFile  = async (req, res)=>{
       if(files) {
         res.render("pages/admin-homepage", {
           message: "Welcome Mr. Rasel Mahmud",
-          markdown: files.markdownFiles
+          markdown: files
         })
       }
       // response(res, 500, {

@@ -4,8 +4,9 @@ import * as controllers from "../controllers"
 import getAuthID from "../middlewares/getAuthID";
 
 export default (app)=>{
-  app.post("/api/auth/login", controllers.default.authController.loginUser)
+  app.get("/api/auth/user/:email", controllers.default.authController.getUserEmail)
   
+  app.post("/api/auth/login", controllers.default.authController.loginUser)
   app.get("/api/users/:id", controllers.default.authController.getUser)
   
   app.get("/api/auth/current-auth", controllers.default.authController.loginViaToken)

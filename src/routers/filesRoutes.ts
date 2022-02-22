@@ -17,6 +17,6 @@ export default (app)=>{
   app.get("/api/backup", getAuthID, controllers.default.filesController.makeDataBackup)
   
   
-  app.delete("/api/file-delete", getAuthID, controllers.default.filesController.deletedFile)
+  app.post("/api/file-delete", getAuthID, controllers.default.filesController.deletedFile)
   
 }

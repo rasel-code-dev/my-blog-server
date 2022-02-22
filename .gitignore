@@ -8,3 +8,4 @@ client/*
 dump.rdb
 src/database/cloudSync.js
 dist/database/cloudSync.js
+src/drive

@@ -38,6 +38,7 @@ const corsOptions = {
   }
 }
 
+
 app.use(cors(corsOptions))
 
 
@@ -45,30 +46,19 @@ if(process.env.NODE_ENV === "development"){
   /// static file serve dist/static directory
   // app.use("/static", express.static( path.resolve("src/static")))
   // call this func when local server read ts file...
-  // const routes = require("../src/routers")
-  // routes(app)
+  const routes = require("../src/routers")
+  routes(app)
   
 } else {
   // when use lambda function
   app.use("/.netlify/functions/server/static", express.static( path.resolve("src/static")))
   app.use("/static", express.static( path.resolve("src/static")))
   
-  // const routers = require("../dist/routers")
+  const routers = require("../dist/routers")
   
   // app object not gonna work when use server less function
-  // routers(router)
+  routers(router)
 }
-
-app.get("/", async (req, res)=>{
-  try {
-    let d = await readdir(path.join(__dirname, "..", "functions"))
-    console.log(d)
-    res.send({d: d})
-
-  } catch (ex){
-    res.send(ex.message)
-  }
-})
 
 app.use(bodyParser.json());
 app.use('/.netlify/functions/server', router);  // path must route to lambda

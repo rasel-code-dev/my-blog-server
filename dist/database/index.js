@@ -8,9 +8,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.redisConnect = void 0;
+exports.mongoConnect = exports.redisConnect = void 0;
+const errorConsole_1 = __importDefault(require("../logger/errorConsole"));
 const { createClient } = require('redis');
+const mongodb_1 = require("mongodb");
 function redisConnect() {
     return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
         let client;
@@ -29,4 +34,43 @@ function redisConnect() {
     }));
 }
 exports.redisConnect = redisConnect;
-//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiaW5kZXguanMiLCJzb3VyY2VSb290IjoiLi9zcmMvIiwic291cmNlcyI6WyJkYXRhYmFzZS9pbmRleC50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiOzs7Ozs7Ozs7Ozs7QUFBQSxNQUFNLEVBQUUsWUFBWSxFQUFFLEdBQUcsT0FBTyxDQUFDLE9BQU8sQ0FBQyxDQUFDO0FBRzFDLFNBQWdCLFlBQVk7SUFDMUIsT0FBTyxJQUFJLE9BQU8sQ0FBRSxDQUFPLE9BQU8sRUFBRSxNQUFNLEVBQUMsRUFBRTtRQUUzQyxJQUFJLE1BQU0sQ0FBQztRQUVYLElBQUcsT0FBTyxDQUFDLEdBQUcsQ0FBQyxRQUFRLEtBQUssYUFBYSxFQUFDO1lBQ3hDLE1BQU0sR0FBRyxNQUFNLFlBQVksRUFBRSxDQUFDO1NBQy9CO2FBQU07WUFDTCxNQUFNLEdBQUcsTUFBTSxZQUFZLENBQUU7Z0JBQzNCLEdBQUcsRUFBRSxZQUFZLE9BQU8sQ0FBQyxHQUFHLENBQUMsY0FBYyxJQUFJLE9BQU8sQ0FBQyxHQUFHLENBQUMsY0FBYyxJQUFJLE9BQU8sQ0FBQyxHQUFHLENBQUMsVUFBVSxFQUFFO2FBQ3RHLENBQUMsQ0FBQztTQUNKO1FBRUQsTUFBTSxNQUFNLENBQUMsRUFBRSxDQUFDLE9BQU8sRUFBRSxDQUFDLEdBQUcsRUFBRSxFQUFFLENBQUMsT0FBTyxDQUFDLEdBQUcsQ0FBQyx3Q0FBd0MsRUFBRSxHQUFHLENBQUMsQ0FBQyxDQUFDO1FBQzlGLE9BQU8sQ0FBQyxHQUFHLENBQUMsb0JBQW9CLENBQUMsQ0FBQTtRQUNqQyxNQUFNLE1BQU0sQ0FBQyxPQUFPLEVBQUUsQ0FBQztRQUN2QixPQUFPLENBQUMsTUFBTSxDQUFDLENBQUE7SUFFakIsQ0FBQyxDQUFBLENBQUMsQ0FBQTtBQUNKLENBQUM7QUFuQkQsb0NBbUJDIn0=
+function mongoConnect(collectionName) {
+    const uri = "mongodb+srv://rasel:EducationRY5@cluster0.4ywhd.mongodb.net/dev-story?retryWrites=true&w=majority";
+    const client = new mongodb_1.MongoClient(uri, {
+        // @ts-ignore
+        useNewUrlParser: true, useUnifiedTopology: true,
+        // serverApi: ServerApiVersion.v1
+    });
+    return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+        try {
+            // Connect the client to the server
+            yield client.connect();
+            let db = yield client.db("dev-story");
+            // perform actions on the collection object
+            console.log("Connected successfully to server");
+            if (collectionName) {
+                let c = yield db.collection(collectionName);
+                resolve({ c: c, client, db: db });
+            }
+            else {
+                resolve({ db: db, client });
+            }
+        }
+        catch (ex) {
+            (0, errorConsole_1.default)(ex);
+            reject(ex);
+        }
+        finally {
+            // await client.close();
+        }
+        // if(collectionName){
+        //   let c = await db.collection(collectionName)
+        //   resolve({c: c, client})
+        // } else {
+        //   resolve({db: db, client})
+        // }
+        // client.close();
+    }));
+}
+exports.mongoConnect = mongoConnect;
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiaW5kZXguanMiLCJzb3VyY2VSb290IjoiLi9zcmMvIiwic291cmNlcyI6WyJkYXRhYmFzZS9pbmRleC50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiOzs7Ozs7Ozs7Ozs7Ozs7QUFBQSwwRUFBa0Q7QUFFbEQsTUFBTSxFQUFFLFlBQVksRUFBRSxHQUFHLE9BQU8sQ0FBQyxPQUFPLENBQUMsQ0FBQztBQUMxQyxxQ0FBd0U7QUFFeEUsU0FBZ0IsWUFBWTtJQUMxQixPQUFPLElBQUksT0FBTyxDQUFFLENBQU8sT0FBTyxFQUFFLE1BQU0sRUFBQyxFQUFFO1FBRTNDLElBQUksTUFBTSxDQUFDO1FBRVgsSUFBRyxPQUFPLENBQUMsR0FBRyxDQUFDLFFBQVEsS0FBSyxhQUFhLEVBQUM7WUFDeEMsTUFBTSxHQUFHLE1BQU0sWUFBWSxFQUFFLENBQUM7U0FDL0I7YUFBTTtZQUNMLE1BQU0sR0FBRyxNQUFNLFlBQVksQ0FBRTtnQkFDM0IsR0FBRyxFQUFFLFlBQVksT0FBTyxDQUFDLEdBQUcsQ0FBQyxjQUFjLElBQUksT0FBTyxDQUFDLEdBQUcsQ0FBQyxjQUFjLElBQUksT0FBTyxDQUFDLEdBQUcsQ0FBQyxVQUFVLEVBQUU7YUFDdEcsQ0FBQyxDQUFDO1NBQ0o7UUFFRCxNQUFNLE1BQU0sQ0FBQyxFQUFFLENBQUMsT0FBTyxFQUFFLENBQUMsR0FBRyxFQUFFLEVBQUUsQ0FBQyxPQUFPLENBQUMsR0FBRyxDQUFDLHdDQUF3QyxFQUFFLEdBQUcsQ0FBQyxDQUFDLENBQUM7UUFDOUYsT0FBTyxDQUFDLEdBQUcsQ0FBQyxvQkFBb0IsQ0FBQyxDQUFBO1FBQ2pDLE1BQU0sTUFBTSxDQUFDLE9BQU8sRUFBRSxDQUFDO1FBQ3ZCLE9BQU8sQ0FBQyxNQUFNLENBQUMsQ0FBQTtJQUVqQixDQUFDLENBQUEsQ0FBQyxDQUFBO0FBQ0osQ0FBQztBQW5CRCxvQ0FtQkM7QUFFRCxTQUFnQixZQUFZLENBQUMsY0FBdUI7SUFFbEQsTUFBTSxHQUFHLEdBQUcsbUdBQW1HLENBQUM7SUFFaEgsTUFBTSxNQUFNLEdBQUcsSUFBSSxxQkFBVyxDQUFDLEdBQUcsRUFBRTtRQUNsQyxhQUFhO1FBQ2IsZUFBZSxFQUFFLElBQUksRUFBRSxrQkFBa0IsRUFBRSxJQUFJO1FBQy9DLGlDQUFpQztLQUNsQyxDQUFDLENBQUM7SUFDSCxPQUFPLElBQUksT0FBTyxDQUFnRCxDQUFPLE9BQU8sRUFBRSxNQUFNLEVBQUMsRUFBRTtRQUV2RixJQUFJO1lBQ0YsbUNBQW1DO1lBQ25DLE1BQU0sTUFBTSxDQUFDLE9BQU8sRUFBRSxDQUFDO1lBRXZCLElBQUksRUFBRSxHQUFHLE1BQU0sTUFBTSxDQUFDLEVBQUUsQ0FBQyxXQUFXLENBQUMsQ0FBQTtZQUNyQywyQ0FBMkM7WUFDM0MsT0FBTyxDQUFDLEdBQUcsQ0FBQyxrQ0FBa0MsQ0FBQyxDQUFDO1lBRWhELElBQUcsY0FBYyxFQUFDO2dCQUNkLElBQUksQ0FBQyxHQUFHLE1BQU0sRUFBRSxDQUFDLFVBQVUsQ0FBQyxjQUFjLENBQUMsQ0FBQTtnQkFDM0MsT0FBTyxDQUFDLEVBQUMsQ0FBQyxFQUFFLENBQUMsRUFBRSxNQUFNLEVBQUUsRUFBRSxFQUFFLEVBQUUsRUFBQyxDQUFDLENBQUE7YUFDaEM7aUJBQU07Z0JBQ0wsT0FBTyxDQUFDLEVBQUMsRUFBRSxFQUFFLEVBQUUsRUFBRSxNQUFNLEVBQUMsQ0FBQyxDQUFBO2FBQzFCO1NBQ0o7UUFBQyxPQUFPLEVBQUUsRUFBQztZQUNWLElBQUEsc0JBQVksRUFBQyxFQUFFLENBQUMsQ0FBQTtZQUNoQixNQUFNLENBQUMsRUFBRSxDQUFDLENBQUE7U0FDWDtnQkFBUztZQUNSLHdCQUF3QjtTQUN6QjtRQUVILHNCQUFzQjtRQUN0QixnREFBZ0Q7UUFDaEQsNEJBQTRCO1FBQzVCLFdBQVc7UUFDWCw4QkFBOEI7UUFDOUIsSUFBSTtRQUVGLGtCQUFrQjtJQUN0QixDQUFDLENBQUEsQ0FBQyxDQUFBO0FBQ0osQ0FBQztBQXpDRCxvQ0F5Q0MifQ==

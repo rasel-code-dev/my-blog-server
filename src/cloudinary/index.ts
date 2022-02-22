@@ -1,9 +1,8 @@
-import {throws} from "assert";
 
 const { v2: cloudinary} = require("cloudinary");
 
 
-const cloudinaryHandler = ()=>{
+export const cloudinaryHandler = ()=>{
   cloudinary.config({
     cloud_name: process.env.cloud_name,
     api_key: process.env.api_key,
@@ -15,14 +14,15 @@ const cloudinaryHandler = ()=>{
 
 
 
-export const uploadImage = (imagePath: string)=>{
+export const uploadImage = (imagePath: string, dir?: string)=>{
   return new Promise<{secure_url: string}>(async (resolve, reject)=>{
     try{
       let s = await cloudinaryHandler().uploader.upload(
         imagePath,
         {
           use_filename: true,
-          unique_filename: false
+          unique_filename: false,
+          folder: dir ? dir : ""
         })
       resolve(s)
     } catch (ex){

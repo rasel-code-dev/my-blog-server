@@ -6,6 +6,7 @@ import {DBDirpath, MDDirpath} from "../utilities/MDPath";
 import {cp, readdir, readFile, rm, stat, writeFile} from "fs/promises";
 import replaceOriginalFilename from "../utilities/replaceOriginalFilename";
 import errorConsole from "../logger/errorConsole";
+import {deleteFile, getFiles} from "../dropbox";
 
 export const makeDataBackup  = async (req, res)=>{
   function createBackup() {
@@ -138,35 +139,25 @@ export const saveFileContent = async (req, res)=>{
 }
 
 export const getDBFileList = async () =>{
-  return new Promise<{markdownFiles?: any[], databaseFiles?: any[] }>(async (resolve, reject)=>{
+  return new Promise<any[]>(async (resolve, reject)=>{
     try{
-      let mdPath = path.resolve("src/markdown") // from project root
-        let mdFiles = await readdir(mdPath)
-      
-        let mdFilesD = []
-      
-        for (const file of mdFiles) {
-          let a = await stat(path.join(mdPath + "/" +  file))
-          mdFilesD.push({
-            dir: a.isDirectory(),
-            modifyTime: a.mtime,
-            name: file,
-            path: path.join(mdPath + "/" +  file),
-            size: a.size
-          })
-        }
-      
-        
-        
-        resolve({
-          markdownFiles: mdFilesD ? mdFilesD : []
+      let mdPath = "/Apps/markdown-static"
+      let files = await getFiles(mdPath)
+      if(files){
+        let updatedFiles: any[] = files.map(file=>{
+          return {
+            dir: file['.tag'] !== "file",
+            name: file.name,
+            path: file.path_lower.slice(1),
+            size: file.size,
+            modifyTime: file.client_modified
+          }
         })
+        resolve(updatedFiles)
+      }
       
     } catch(ex){
-      console.log(ex.message)
-      resolve({
-        markdownFiles: []
-      })
+      resolve([])
     }
     
   })
@@ -218,15 +209,17 @@ export const  uploadFile = async (req, res)=>{
 
 export const deletedFile = async (req, res)=>{
 
-  let filePath = req.query.path
+  let filePath = req.body.path
     
     try {
-      await rm(path.resolve(filePath))
-      response(res, 201, {
-        message: "file deleted",
-        deletedPath: filePath
-      })
+      let file = await deleteFile(filePath)
+      if(file){
+        return response(res, 201, "file deleted")
+      } else {
+        return response(res, 500, "file are not deleted")
+      }
     } catch (ex){
+      errorConsole(ex)
       response(res, 500, {
         message: "File upload fail" + ex.message
       })

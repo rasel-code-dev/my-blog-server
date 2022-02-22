@@ -2,6 +2,7 @@ import formidable from 'formidable';
 import { copyFile, mkdir, rm, stat } from 'fs/promises';
 import fs from "fs"
 import {Request, Response} from "express"
+import path from "path";
 // "formidable": "^2.0.1",
 
 function fileUpload(req: Request, filePath: string, fieldName: string, callback: (err: any, obj: ResultType)=>any){
@@ -48,7 +49,7 @@ function fileUploadHandler(req: Request, uploadDir: string, fieldName: string, c
           
           files[fieldName].map(async (file, i)=>{  
             // item = (i + 1)
-            let newPath = uploadDir+"/"+file.name
+            let newPath = path.join(uploadDir+"/"+file.name)
             try {
               await copyFile(file.path, newPath)
               newFiles.push({
